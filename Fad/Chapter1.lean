@@ -8,6 +8,7 @@ def map : (a → b) → List a → List b
 | f, (x :: xs) => f x :: map f xs
 
 #eval map (· * 10) [1,2,3]
+#eval map (λ x => x * 10) [1,2,3]
 
 def filter {a : Type}  : (a → Bool) → List a → List a
 | _, [] => []
@@ -23,29 +24,47 @@ def foldl {a b : Type} : (b → a → b) → b → List a → b
 | _, e, [] => e
 | f, e, (x::xs) => foldl f (f e x) xs
 
-#eval foldr (fun a b => a + b) 0 [1,2,3]
+def length : List a → Nat := foldr succ 0
+  where succ _ n := n + 1
 
-theorem test₁ : foldr Nat.add 0 [1,2,3] = 6 := by
+example : length ["a", "b", "c"] = 3 := by
+  unfold length
   unfold foldr
   unfold foldr
   unfold foldr
+  rewrite [length.succ]
+  rewrite [length.succ]
+  rewrite [length.succ]
   unfold foldr
-  rfl -- can I do only beta-reduction?
+  rfl
 
-theorem test₂ : foldl Nat.add 0 [1,2,3] = 6 := by
+example : foldr Nat.add 0 [1,2,3] = 6 := by
+  unfold foldr
+  unfold foldr
+  unfold foldr
+  unfold foldr
+  rewrite (config := {occs := .pos [3]}) [Nat.add]
+  rewrite (config := {occs := .pos [2]}) [Nat.add]
+  rewrite (config := {occs := .pos [1]}) [Nat.add]
+  rfl
+
+example : foldl Nat.add 0 [1,2,3] = 6 := by
   unfold foldl
   unfold foldl
   unfold foldl
   unfold foldl
-  rfl -- can I do only beta-reduction?
+  rewrite (config := {occs := .pos [3]}) [Nat.add]
+  rewrite (config := {occs := .pos [2]}) [Nat.add]
+  rewrite (config := {occs := .pos [1]}) [Nat.add]
+  rfl
 
 -- 1.2 Processing lists
 
-def concat1 {a : Type} (xss : List (List a)) : List a :=
- List.foldr List.append [] xss
+def concat1 {a : Type} : List (List a) → List a :=
+ List.foldr List.append []
 
-def concat2 (xss : List (List a)) : List a :=
- List.foldl List.append [] xss
+def concat2 {a : Type} : List (List a) → List a :=
+ List.foldl List.append []
 
 example : concat1 [[1,2,3,4], [5], [6]] = [1,2,3,4,5,6] := by
   unfold concat1
@@ -84,7 +103,8 @@ example : concat2 [[1,2,3,4], [5], [6]] = [1,2,3,4,5,6] := by
   unfold List.foldl
   rfl
 
-theorem foldrEmptyAll : ∀ xs : List Nat, foldr List.cons [] xs = xs := by
+open List in
+example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   intro xs
   induction xs with
   | nil => unfold foldr; rfl
