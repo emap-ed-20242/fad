@@ -24,6 +24,9 @@ def foldl {a b : Type} : (b → a → b) → b → List a → b
 | _, e, [] => e
 | f, e, (x::xs) => foldl f (f e x) xs
 
+def length' (xs : List a) : Nat :=
+  foldr (fun _ y => y + 1) 0 xs
+
 def length : List a → Nat := foldr succ 0
   where succ _ n := n + 1
 
@@ -35,7 +38,7 @@ example : length ["a", "b", "c"] = 3 := by
   rewrite [length.succ]
   rewrite [length.succ]
   rewrite [length.succ]
-  unfold foldr
+  rewrite [foldr.eq_1]
   rfl
 
 example : foldr Nat.add 0 [1,2,3] = 6 := by
@@ -108,7 +111,7 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   intro xs
   induction xs with
   | nil => unfold foldr; rfl
-  | cons h1 h2 ih => unfold foldr; rewrite [ih]; rfl
+  | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
 def scanl : (b → a → b ) → b → List a → List b
@@ -117,7 +120,8 @@ def scanl : (b → a → b ) → b → List a → List b
 
 #eval scanl Nat.add 0 [1,2,3,4]
 #eval scanl Nat.add 42 []
-#eval scanl (λ r n => n :: r) "foo".toList ['a', 'b', 'c', 'd'] |>.map List.asString
+#eval scanl (λ r n => n :: r)
+  "foo".toList ['a', 'b', 'c', 'd'] |>.map List.asString
 
 
 -- 1.3 Inductive and recursive definitions
@@ -130,19 +134,24 @@ def inserts {a : Type} : a → List a → List (List a)
 
 #eval inserts 1 [2,3]
 
-def concatMap (f : a → List b) : List a → List b := concat1 ∘ (List.map f)
+def concatMap (f : a → List b) : List a → List b :=
+ concat1 ∘ (List.map f)
 
-def perm₁ : List a → List (List a) :=
-  let step x xss := concatMap (inserts x) xss
-  foldr step [[]]
+#eval concatMap (String.toList ·) ["aa", "bb", "cc"]
+
+def perm₀ : List a → List (List a)
+ | [] => [[]]
+ | (x :: xs) => concatMap (inserts x ·) (perm₀ xs)
+
+def perm₁ : List a → List (List a) := foldr step [[]]
+ where
+  step x xss := concatMap (inserts x) xss
 
 #eval perm₁ "123".toList |>.map List.asString
 
-example (x : Nat) (xss : List (List Nat))
- : concatMap (inserts x) xss = (concatMap ∘ inserts) x xss := by
+example (x : Nat)
+ : concatMap (inserts x) = (concatMap ∘ inserts) x := by
   unfold concatMap
-  rewrite [Function.comp]
-  rewrite [Function.comp]
   rewrite [Function.comp]
   rfl
 
@@ -155,12 +164,14 @@ def picks {a : Type} : List a → List (a × List a)
 | (x :: xs) =>
    (x, xs) :: ((picks xs).map (λ p => (p.1, x :: p.2)))
 
+theorem picks_less :
+  p ∈ picks xs → p.2.length < xs.length := sorry
+
 #eval picks [1,2,3]
 
-def perm₂ : List a → List (List a)
+partial def perm₂ : List a → List (List a)
   | [] => [[]]
-  | xs => concatMap (λ p => (perm₂ p.2).map (p.1 :: ·)) (picks xs)
- termination_by xs => xs.length
+  | xs => concatMap  (λ p => (perm₂ p.2).map (p.1 :: ·)) (picks xs)
 
 theorem perm_aux {a : Type}
   (v : a) (l : List a)
@@ -182,13 +193,14 @@ def perm : List a → List (List a)
       (picks (x :: xs)).attach
  termination_by xs => xs.length
 
+
 partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
   if p x then x
   else until' p f (f x)
 
 partial def while' (p : a → Bool) := until' (not ∘ p)
 
-#eval while' (· < 10) (· + 1) 0
+#eval until' (· > 10) (· + 1) 0
 
 
 -- 1.4 Fusion
@@ -219,15 +231,12 @@ example (f : a → a → a)
   | nil =>
     rw [foldr.eq_1, Function.comp]
     simp [concat1, foldr.eq_1]
-  | cons x xs ih =>
-    rw [foldr]
+  | cons y ys ih =>
+    simp [foldr]
     rw [← ih]
-    rw [Function.comp]
-    rw [concat1]
-    simp [foldr.eq_2]
     sorry
 
-example (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) = g x (h y))
+theorem fusion_th (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) = g x (h y))
  : h (foldr f e xs) = foldr g (h e) xs := by
  induction xs with
   | nil =>
@@ -243,6 +252,78 @@ example (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) = g x (h y)
 
 
 -- 1.5 Accumulating and tupling
+
+def sum (xs : List Int) := xs.foldl Int.add 0
+
+def collapse₁ (xss : List (List Int)) : List Int :=
+ help [] xss
+ where
+  help : List Int → List (List Int) → List Int
+  | xs, [] => xs
+  | xs, (as :: bss) =>
+    if (sum xs) > 0 then xs
+    else help (xs.append as) bss
+
+partial def collapse₂ (xss : List (List Int)) : List Int :=
+  help (0, []) (labelsum xss)
+  where
+   labelsum (xss : List (List Int)) : List (Int × List Int) :=
+     List.zip (map sum xss) xss
+   help : (Int × List Int) → List (Int × List Int) → List Int
+   | (_, xs), [] => xs
+   | (s, xs), xss => if s > 0 then xs else help (cat (s, xs) xss.head!) xss.tail
+   cat : (Int × List Int) → (Int × List Int) → (Int × List Int)
+   | (s, xs), (t, ys) => (s + t, xs ++ ys)
+
+def collapse₃ (xss : List (List Int)) : List Int :=
+  help (0, id) (labelsum xss) []
+  where
+    sum (xs : List Int) := xs.foldl Int.add 0
+    labelsum (xss : List (List Int)) : List (Int × List Int) :=
+     List.zip (map sum xss) xss
+    help :
+    let tf := List Int → List Int
+    (Int × tf) → List (Int × List Int) → tf
+    | (_, f), [] => f
+    | (s, f), (as :: bs) =>
+      if s > 0 then f
+      else help (s + as.1, f ∘ (as.2 ++ ·)) bs
+
+#eval collapse₃ [[1],[-3],[2,4]]
+#eval collapse₃ [[-2,1],[-3],[2,4]]
+#eval collapse₃ [[-2,1],[3],[2,4]]
+
+
+def fib : Nat → Nat
+  | 0     => 1
+  | 1     => 1
+  | n + 2 => fib (n + 1) + fib n
+
+example : fib 0 = 1 := rfl
+example : fib 1 = 1 := rfl
+example : fib (n + 2) = fib (n + 1) + fib n := rfl
+example : fib 7 = 21 := rfl
+
+def fibFast (n : Nat) : Nat :=
+  (loop n).2
+where
+  loop : Nat → Nat × Nat
+  | 0   => (0, 1)
+  | n+1 => let p := loop n; (p.2, p.1 + p.2)
+
+#eval fibFast 100
+#reduce fib 100 -- try eval
+
+#print fib
+
+example : fibFast 4 = 5 := by
+  unfold fibFast
+  unfold fibFast.loop
+  unfold fibFast.loop
+  unfold fibFast.loop
+  unfold fibFast.loop
+  unfold fibFast.loop
+  rfl
 
 
 end Chapter1
