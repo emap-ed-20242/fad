@@ -255,6 +255,14 @@ theorem fusion_th (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) =
 
 def sum (xs : List Int) := xs.foldl Int.add 0
 
+def collapse₀ (xss : List (List Int)) : List Int :=
+ help [] xss
+ where
+  help : List Int → List (List Int) → List Int
+  | xs, xss =>
+    if (sum xs) > 0 ∨ xss.isEmpty then xs
+    else help (xs.append xss.head!) xss.tail
+
 def collapse₁ (xss : List (List Int)) : List Int :=
  help [] xss
  where
@@ -278,7 +286,6 @@ partial def collapse₂ (xss : List (List Int)) : List Int :=
 def collapse₃ (xss : List (List Int)) : List Int :=
   help (0, id) (labelsum xss) []
   where
-    sum (xs : List Int) := xs.foldl Int.add 0
     labelsum (xss : List (List Int)) : List (Int × List Int) :=
      List.zip (map sum xss) xss
     help :
@@ -313,7 +320,6 @@ where
 
 #eval fibFast 100
 #reduce fib 100 -- try eval
-
 #print fib
 
 example : fibFast 4 = 5 := by
@@ -324,6 +330,36 @@ example : fibFast 4 = 5 := by
   unfold fibFast.loop
   unfold fibFast.loop
   rfl
+
+-- Exercicios
+
+def dropWhile (xs : List α) : List α := sorry
+
+def uncons (xs : List α) : Option (α × List α) := sorry
+
+def wrap (a : α) : List α := sorry
+
+def unwrap (a : List α) : α := sorry
+
+def single (a : List α) : Bool := sorry
+
+/- need to be linear -/
+def reverse (a : List α) : List α := sorry
+
+example (foldr f e) ∘ (filter p) = foldr ???? := sorry
+
+/- as an instance of foldr -/
+def takeWhile (xs : List α) (p : α → Bool) : List α := sorry
+
+example map (foldl f e) ∘ inits = ????  := sorry
+
+example map (foldr f e) ∘ tails = ???? := sorry
+
+/- determining whether a sequence of numbers is steep. Ex 1.21 -/
+def steep₁ (xs : List Nat) : Bool := sorry
+
+/- determining whether a sequence of numbers is steep. Ex 1.21 using tupling -/
+def steep₂ (xs : List Nat) : Bool := sorry
 
 
 end Chapter1
