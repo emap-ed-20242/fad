@@ -126,13 +126,11 @@ def scanl : (b → a → b ) → b → List a → List b
 
 -- 1.3 Inductive and recursive definitions
 
--- https://stackoverflow.com/a/20414229/121095
-
 def inserts {a : Type} : a → List a → List (List a)
 | x, [] => [[x]]
 | x, (y :: ys) => (x :: y :: ys) :: map (y :: ·) (inserts x ys)
 
-#eval inserts 1 [2,3]
+#eval inserts 1 [2,3,4,5]
 
 def concatMap (f : a → List b) : List a → List b :=
  concat1 ∘ (List.map f)
@@ -147,8 +145,6 @@ def perm₁ : List a → List (List a) := foldr step [[]]
  where
   step x xss := concatMap (inserts x) xss
 
-#eval perm₁ "123".toList |>.map List.asString
-
 example (x : Nat)
  : concatMap (inserts x) = (concatMap ∘ inserts) x := by
   unfold concatMap
@@ -158,6 +154,8 @@ example (x : Nat)
 def perm₁' : List a → List (List a) :=
   foldr (concatMap ∘ inserts) [[]]
 
+#eval perm₁ "12".toList |>.map List.asString
+
 
 def picks {a : Type} : List a → List (a × List a)
 | [] => []
@@ -165,13 +163,29 @@ def picks {a : Type} : List a → List (a × List a)
    (x, xs) :: ((picks xs).map (λ p => (p.1, x :: p.2)))
 
 theorem picks_less :
-  p ∈ picks xs → p.2.length < xs.length := sorry
+  p ∈ picks xs → p.2.length < xs.length := by
+  induction xs with
+  | nil =>
+    unfold picks
+    intro h
+    simp at h
+  | cons x xs ih =>
+    intro h
+    unfold picks at h
+    simp at h
+    cases h with
+    | inl h =>
+      rw [h]
+      simp
+    | inr h =>
+      simp; rw [Nat.lt_succ_iff, Nat.le_iff_lt_or_eq]; left; apply ih
+      apply Exists.elim h; intro q hq; sorry
 
-#eval picks [1,2,3]
 
 partial def perm₂ : List a → List (List a)
   | [] => [[]]
   | xs => concatMap  (λ p => (perm₂ p.2).map (p.1 :: ·)) (picks xs)
+
 
 theorem perm_aux {a : Type}
   (v : a) (l : List a)
@@ -255,7 +269,7 @@ theorem fusion_th (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) =
 
 def sum (xs : List Int) := xs.foldl Int.add 0
 
-def collapse₀ (xss : List (List Int)) : List Int :=
+partial def collapse₀ (xss : List (List Int)) : List Int :=
  help [] xss
  where
   help : List Int → List (List Int) → List Int
@@ -333,7 +347,8 @@ example : fibFast 4 = 5 := by
 
 -- Exercicios
 
-def dropWhile (xs : List α) : List α := sorry
+/-
+def dropWhile (p : α → Bool) (xs : List α) : List α := sorry
 
 def uncons (xs : List α) : Option (α × List α) := sorry
 
@@ -346,20 +361,20 @@ def single (a : List α) : Bool := sorry
 /- need to be linear -/
 def reverse (a : List α) : List α := sorry
 
-example (foldr f e) ∘ (filter p) = foldr ???? := sorry
+example : (foldr f e) ∘ (filter p) = foldr ???? := sorry
 
 /- as an instance of foldr -/
 def takeWhile (xs : List α) (p : α → Bool) : List α := sorry
 
-example map (foldl f e) ∘ inits = ????  := sorry
+example : map (foldl f e) ∘ inits = ????  := sorry
 
-example map (foldr f e) ∘ tails = ???? := sorry
+example : map (foldr f e) ∘ tails = ???? := sorry
 
 /- determining whether a sequence of numbers is steep. Ex 1.21 -/
 def steep₁ (xs : List Nat) : Bool := sorry
 
 /- determining whether a sequence of numbers is steep. Ex 1.21 using tupling -/
 def steep₂ (xs : List Nat) : Bool := sorry
-
+-/
 
 end Chapter1

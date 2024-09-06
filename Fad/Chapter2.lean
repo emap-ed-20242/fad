@@ -1,2 +1,96 @@
 
--- to be filled
+namespace Chapter2
+
+#eval List.append [1,2,3] [4,5,6]
+
+#eval List.head! (List.iota 1000)
+
+def concat₀ : List (List a) → List a
+ | [] => []
+ | (xs :: xss) => xs ++ concat₀ xss
+
+def concat₁ (xss : List (List a)) : List a :=
+ dbg_trace "concat₁ {xss.length}"
+ match xss with
+  | [] => []
+  | (xs :: xss) => xs ++ concat₁ xss
+
+#eval concat₁ [[1, 2], [3, 4], [5, 6]]
+
+
+-- 2.4 Amortised running times
+
+def dropWhile (p : a → Bool) : List a → List a
+| [] => []
+| (x :: xs) => if p x then dropWhile p xs else x :: xs
+
+def build (p : a → a → Bool) : List a → List a :=
+ List.foldr insert []
+ where
+  insert x xs := x :: dropWhile (p x) xs
+
+#eval build (· = ·) [4,4,2,1,1,1,2,5]
+
+example :
+ build (fun x y => x = y) [4,4,2,1] = [4, 2, 1] := by
+ unfold build
+ unfold List.foldr
+ unfold build.insert
+ unfold List.foldr
+ unfold dropWhile; simp
+ rfl
+
+
+def iterate : Nat → (a → a) → a → a
+ | 0, _, x => x
+ | Nat.succ n, f, x => iterate n f (f x)
+
+def bits (n : Nat) : List Bool :=
+  iterate n inc []
+ where
+   inc : List Bool → List Bool
+   | [] => [true]
+   | (false :: bs) => true :: bs
+   | (true :: bs) => false :: inc bs
+
+#eval List.foldr
+ (fun b s => if b then "1" ++ s else "0" ++ s) ""
+ $ List.reverse $ bits 345
+
+
+partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
+  if p x then x
+  else until' p f (f x)
+
+def init₀ : List α → List α
+| []      => panic! "no elements"
+| [_]     => []
+| x :: xs => x :: init₀ xs
+
+def init₁ : List α → Option (List α)
+| []      => none
+| [_]     => some []
+| x :: xs =>
+   match init₁ xs with
+   | none => none
+   | some ys => some (x :: ys)
+
+def init₂ : List α → Option (List α)
+| []      => none
+| [_]     => some []
+| x :: xs => init₂ xs >>= (fun ys => pure (x :: ys))
+
+def prune (p : List a → Bool) (xs : List a) : List a :=
+ List.foldr cut [] xs
+  where
+    cut x xs := until' done init₀ (x :: xs)
+    done (xs : List a) := xs.isEmpty ∨ p xs
+
+def ordered : List Nat → Bool
+ | [] => true
+ | [_] => true
+ | x :: y :: xs => x ≤ y ∧ ordered (y :: xs)
+
+#eval prune ordered [3,7,8,2,3]
+
+end Chapter2

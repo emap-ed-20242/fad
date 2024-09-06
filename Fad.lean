@@ -2,3 +2,5 @@
 -- Import modules here that should be built as part of the library.
 import Fad.Basic
 import Fad.Chapter1
+import Fad.Chapter2
+import Fad.Chapter3
