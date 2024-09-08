@@ -123,6 +123,21 @@ def scanl : (b → a → b ) → b → List a → List b
 #eval scanl (λ r n => n :: r)
   "foo".toList ['a', 'b', 'c', 'd'] |>.map List.asString
 
+def inits {a : Type} : List a → List (List a)
+| [] => [[]]
+| (x :: xs) => [] :: (inits xs).map (fun ys => x :: ys)
+
+def tails {a : Type} : List a → List (List a)
+| [] => [[]]
+| (x :: xs) => (x :: xs) :: tails xs
+
+example {a b : Type} (f : b → a → b) (e : b) :
+  map (foldl f e) ∘ inits = scanl f e := by
+  funext xs
+  induction xs with
+  | nil => simp [map, inits, foldl, scanl]
+  | cons x xs ih =>
+    sorry
 
 -- 1.3 Inductive and recursive definitions
 
