@@ -103,8 +103,6 @@ inductive Tree (α : Type) : Type where
  | node (n : Nat) (t₁ : Tree α) (t₂ : Tree α) : Tree α
  deriving Repr
 
-open Tree
-
 def Tree.size : Tree a → Nat
  | leaf _ => 1
  | node n _ _ => n
@@ -112,6 +110,7 @@ def Tree.size : Tree a → Nat
 def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
  node (t₁.size + t₂.size) t₁ t₂
 
+open Tree in
 #eval mk (mk (leaf 'a') (leaf 'b')) (mk (leaf 'c') (leaf 'd'))
 
 inductive Digit (a : Type) : Type where
@@ -130,6 +129,7 @@ def concat1 {a : Type} : List (List a) → List a :=
 def concatMap (f : a → List b) : List a → List b :=
  concat1 ∘ (List.map f)
 
+open Tree in
 def fromT : Tree a → List a
  | (leaf x) => [x]
  | (node _ t₁ t₂) => fromT t₁ ++ fromT t₂
@@ -141,7 +141,9 @@ def fromRA : RAList a → List a :=
    | Digit.zero => []
    | Digit.one t => fromT t
 
+open Tree in
 open Digit in
+
 #eval fromRA [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
