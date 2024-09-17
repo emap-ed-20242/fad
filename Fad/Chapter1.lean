@@ -131,13 +131,34 @@ def tails {a : Type} : List a → List (List a)
 | [] => [[]]
 | (x :: xs) => (x :: xs) :: tails xs
 
+theorem map_compose {α β γ : Type} (f : β → γ) (g : α → β) (l : List α) :
+  map (f ∘ g) l = map f (map g l) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+  simp [map, ih]
+
+theorem foldl_comp {α β: Type} (y: α) (e : β) (f : β → α → β):
+foldl f e ∘ (fun x => y :: x) = foldl f (f e y) := by rfl
+
+theorem change_maps {α : Type} (g : α -> α ) (a : List α): List.map g a = map g a := by induction a with | nil => rfl |cons a as ih => rw [map]; rw [List.map]; exact congrArg (List.cons (g a)) ih
+
 example {a b : Type} (f : b → a → b) (e : b) :
   map (foldl f e) ∘ inits = scanl f e := by
   funext xs
-  induction xs with
+  induction xs generalizing e with
   | nil => simp [map, inits, foldl, scanl]
   | cons x xs ih =>
-    sorry
+  rw [Function.comp]
+  rw [inits]
+  rw [map]
+  rw [foldl]
+  rw [change_maps]
+  rw [←map_compose]
+  rw [foldl_comp]
+  rw [scanl]
+  exact congrArg (List.cons e) (ih (f e x))
+
 
 -- 1.3 Inductive and recursive definitions
 
@@ -253,6 +274,13 @@ example (xs ys : List a) (f : a → b → b) (e : b)
   | nil => rw [foldr.eq_1]; rewrite [h1]; rfl
   | cons x xs ih => simp [List.append, foldr]; rw [ih]
 
+theorem foldr_append {α β : Type} (f : α → β → β) (e : β) (xs ys : List α) :
+  foldr f e (xs ++ ys) = foldr f (foldr f e ys) xs := by
+  induction xs with
+  |nil => rfl
+  |cons x xs ih =>
+    simp [foldr, ih]
+
 example (f : a → a → a)
  : foldr f e ∘ concat1 = foldr (flip (foldr f)) e := by
   funext xs
@@ -261,9 +289,13 @@ example (f : a → a → a)
     rw [foldr.eq_1, Function.comp]
     simp [concat1, foldr.eq_1]
   | cons y ys ih =>
-    simp [foldr]
-    rw [← ih]
-    sorry
+    rw [Function.comp]
+    simp [concat1]
+    rw [←concat1]
+    rw [foldr_append]
+    rw [foldr]
+    rw [flip]
+    exact congrArg (λ x => foldr f x y) ih
 
 theorem fusion_th (g : a → b → b) (h : a → b) (h₁ : ∀ x y, h (f x y) = g x (h y))
  : h (foldr f e xs) = foldr g (h e) xs := by
