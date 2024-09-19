@@ -114,6 +114,10 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
+def scanr : (b → a → b) → b → List a → List b
+| _, e, [] => [e]
+| f, e, (x :: xs) => (scanr f (f e x) xs) ++ [e]
+
 def scanl : (b → a → b ) → b → List a → List b
 | _, e, [] => [e]
 | f, e, (x :: xs) => e :: scanl f (f e x) xs
@@ -466,15 +470,33 @@ def reverse {α : Type} (a : List α) : List α :=
 example : reverse [3, 4, 5] = [5, 4, 3] := rfl
 example : reverse ([] : List Nat) = [] := rfl
 
-/-
-example : (foldr f e) ∘ (filter p) = foldr ???? := sorry
 
-/- as an instance of foldr -/
-def takeWhile (xs : List α) (p : α → Bool) : List α := sorry
+example (f : α → β → β) :
+ (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
+ := sorry
 
-example : map (foldl f e) ∘ inits = ????  := sorry
 
-example : map (foldr f e) ∘ tails = ???? := sorry
+def takeWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α :=
+  List.foldr helper []
+ where helper (x : α) (xs : List α) : List α :=
+   if p x then x :: xs else []
+
+example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
+  rw [takeWhile]
+  rw [List.foldr]; rw [takeWhile.helper]
+  rw [List.foldr]; rw [takeWhile.helper]
+  rw [List.foldr]; rw [takeWhile.helper]
+  rw [List.foldr]; rw [takeWhile.helper]
+  rw [List.foldr]; rfl
+
+#eval takeWhile (· > 5) []
+#eval takeWhile (· < 5) [7, 8]
+
+
+example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
+
+example (f : α → β → α) : map (foldr f e) ∘ tails = scanr f e := sorry
+
 
 /- determining whether a sequence of numbers is steep. Ex 1.21 -/
 def steep₁ (xs : List Nat) : Bool := sorry
