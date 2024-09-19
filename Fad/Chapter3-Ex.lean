@@ -9,7 +9,7 @@ open Chapter3
 |  3.4 | Breno Russo Guedes de Souza Melo       |
 |  3.5 | Carlos Alberto de Souza Moreira Junior |
 |  3.2 | Gabriel Jacinto Pereira                |
-|  3.1 | Henrique Coelho Beltrão                |
+| 3.10 | Henrique Coelho Beltrão                |
 |  3.9 | Jaime Willian Carneiro da Silva        |
 |  3.3 | Kauan Kevem Sousa Farias               |
 | 3.14 | Leonardo Micheli Belo                  |
