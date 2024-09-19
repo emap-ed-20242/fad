@@ -496,7 +496,7 @@ example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
   rw [List.foldr]; rfl
 
 #eval takeWhile (· > 5) []
-#eval takeWhile (· < 5) [7, 8]
+#eval takeWhile (· < 5) [4, 7, 8]
 
 
 example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
@@ -504,11 +504,29 @@ example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
 example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
 
 
-/- determining whether a sequence of numbers is steep. Ex 1.21 -/
-def steep₁ (xs : List Nat) : Bool := sorry
+def steep₁ (xs : List Nat) : Bool :=
+  let rec sum : List Nat → Nat
+   | [] => 0
+   | x :: xs  => x + sum xs
+  match xs with
+  | []  => true
+  | x :: xs => x > sum xs ∧ steep₁ xs
 
-/- determining whether a sequence of numbers is steep. Ex 1.21 using tupling -/
-def steep₂ (xs : List Nat) : Bool := sorry
--/
+
+def steep₂ : List Nat → Bool :=
+ Prod.snd ∘ faststeep
+ where
+  faststeep : List Nat → (Nat × Bool)
+  | [] => (0, true)
+  | x :: xs =>
+    let (s, b) := faststeep xs
+    (x + s, x > s ∧ b)
+
+example : steep₁ [8,4,2,1] = steep₂ [8,4,2,1] := rfl
+example : steep₁ [] = steep₂ [] := rfl
+
+example : ∀ xs, steep₁ xs = steep₂ xs := sorry
+
+
 
 end Chapter1
