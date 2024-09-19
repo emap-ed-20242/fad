@@ -451,10 +451,9 @@ example : ∀ xs : List Nat, single xs = true ↔ xs.length = 1 := by
   intro xs
   induction xs with
   | nil => simp [single]
-  | cons x xs ih =>
+  | cons x xs _ =>
     rw [single_aux]
     simp [List.length]
-    done
 
 
 def reverse {α : Type} (a : List α) : List α :=
