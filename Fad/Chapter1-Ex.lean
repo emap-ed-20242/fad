@@ -125,6 +125,8 @@ example : steep₁ [] = steep₂ [] := rfl
 
 example : ∀ xs, steep₁ xs = steep₂ xs := sorry
 
-
+/-
+| 1.11 | Carlos César de Oliveira Fonseca       |
+-/
 
 end Chapter1Ex
