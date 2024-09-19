@@ -114,9 +114,15 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
-def scanr : (b → a → b) → b → List a → List b
-| _, e, [] => [e]
-| f, e, (x :: xs) => (scanr f (f e x) xs) ++ [e]
+def scanr : (a → b → b) → b → List a → List b
+| _, q₀, [] => [q₀]
+| f, q₀, (x :: xs) =>
+  match scanr f q₀ xs with
+  | [] => []
+  | qs@(q :: _) => f x q :: qs
+
+#eval scanr Nat.add 0 [1,2,3,4]
+#eval scanr Nat.add 42 []
 
 def scanl : (b → a → b ) → b → List a → List b
 | _, e, [] => [e]
@@ -495,7 +501,7 @@ example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
 
 example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
 
-example (f : α → β → α) : map (foldr f e) ∘ tails = scanr f e := sorry
+example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
 
 
 /- determining whether a sequence of numbers is steep. Ex 1.21 -/
