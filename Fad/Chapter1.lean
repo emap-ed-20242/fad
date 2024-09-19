@@ -7,8 +7,8 @@ def map : (a → b) → List a → List b
 | _, [] => []
 | f, (x :: xs) => f x :: map f xs
 
-#eval map (· * 10) [1,2,3]
-#eval map (λ x => x * 10) [1,2,3]
+#eval map (· * 10) [1,2,3] = [10,20,30]
+#eval map (λ x => x * 10) [1,2,3] = [10,20,30]
 
 def filter {a : Type}  : (a → Bool) → List a → List a
 | _, [] => []
@@ -141,24 +141,26 @@ theorem map_compose {α β γ : Type} (f : β → γ) (g : α → β) (l : List 
 theorem foldl_comp {α β: Type} (y: α) (e : β) (f : β → α → β):
 foldl f e ∘ (fun x => y :: x) = foldl f (f e y) := by rfl
 
-theorem change_maps {α : Type} (g : α -> α ) (a : List α): List.map g a = map g a := by induction a with | nil => rfl |cons a as ih => rw [map]; rw [List.map]; exact congrArg (List.cons (g a)) ih
+theorem map_map {α : Type} (g : α -> α ) (a : List α): List.map g a = map g a := by
+  induction a with
+  | nil => rfl
+  | cons a as ih =>
+    rw [map,List.map]
+    rw [ih]
+    done
 
 example {a b : Type} (f : b → a → b) (e : b) :
-  map (foldl f e) ∘ inits = scanl f e := by
+   map (foldl f e) ∘ inits = scanl f e := by
   funext xs
   induction xs generalizing e with
   | nil => simp [map, inits, foldl, scanl]
   | cons x xs ih =>
-  rw [Function.comp]
-  rw [inits]
-  rw [map]
-  rw [foldl]
-  rw [change_maps]
-  rw [←map_compose]
-  rw [foldl_comp]
-  rw [scanl]
-  exact congrArg (List.cons e) (ih (f e x))
-
+    rw [Function.comp]
+    rw [inits,map,foldl,map_map,←map_compose]
+    rw [foldl_comp,scanl]
+    have hx := ih (f e x)
+    rw [← hx]
+    simp
 
 -- 1.3 Inductive and recursive definitions
 
@@ -392,22 +394,80 @@ example : fibFast 4 = 5 := by
   unfold fibFast.loop
   rfl
 
+
 -- Exercicios
 
+def dropWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α
+| [] => []
+| (x :: xs) => if p x then dropWhile p xs else x :: xs
+
+#eval dropWhile (· < 5) []
+#eval dropWhile (· < 5) (List.iota 10).reverse
+
+
+def uncons {α : Type} (xs : List α) : Option (α × List α) :=
+  match xs with
+  | [] => none
+  | x :: xs => some (x, xs)
+
+example : uncons ([] : List Nat) = none := rfl
+example : uncons [1] = some (1, []) := rfl
+example : uncons [1, 2] = some (1, [2]) := rfl
+example : uncons [1, 2, 3, 4, 5] = some (1, [2, 3, 4, 5]) := rfl
+
+
+def wrap {α : Type} (a : α) : List α := [a]
+
+example : wrap 0 = [0] := rfl
+example : wrap [42] = [[42]] := rfl
+
+
+def unwrap {α : Type} (a : List α) : Option α :=
+  match a with
+  | [x] => some x
+  | _ => none
+
+example : unwrap [42] = some 42 := rfl
+example : unwrap [0, 1] = none := rfl
+example : unwrap (@List.nil Nat) = none := rfl
+
+
+def single {α : Type} (a : List α) : Bool :=
+  match a with
+  | [_] => true
+  | _   => false
+
+example : single [42] = true := rfl
+example : single [0, 1] = false := rfl
+example : single ([] : List Nat) = false := rfl
+
+theorem single_aux {x : Nat} {xs : List Nat}
+  : single (x :: xs) = true ↔ xs = [] := by
+  cases xs with
+  | nil => simp [single]
+  | cons a xs => simp [single]
+
+example : ∀ xs : List Nat, single xs = true ↔ xs.length = 1 := by
+  intro xs
+  induction xs with
+  | nil => simp [single]
+  | cons x xs ih =>
+    rw [single_aux]
+    simp [List.length]
+    done
+
+
+def reverse {α : Type} (a : List α) : List α :=
+  let rec helper (a : List α) (res : List α) : List α :=
+    match a with
+    | [] => res
+    | x :: xs => helper xs (x :: res)
+  helper a []
+
+example : reverse [3, 4, 5] = [5, 4, 3] := rfl
+example : reverse ([] : List Nat) = [] := rfl
+
 /-
-def dropWhile (p : α → Bool) (xs : List α) : List α := sorry
-
-def uncons (xs : List α) : Option (α × List α) := sorry
-
-def wrap (a : α) : List α := sorry
-
-def unwrap (a : List α) : α := sorry
-
-def single (a : List α) : Bool := sorry
-
-/- need to be linear -/
-def reverse (a : List α) : List α := sorry
-
 example : (foldr f e) ∘ (filter p) = foldr ???? := sorry
 
 /- as an instance of foldr -/
