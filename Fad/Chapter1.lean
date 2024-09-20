@@ -7,8 +7,8 @@ def map : (a → b) → List a → List b
 | _, [] => []
 | f, (x :: xs) => f x :: map f xs
 
-#eval map (· * 10) [1,2,3]
-#eval map (λ x => x * 10) [1,2,3]
+#eval map (· * 10) [1,2,3] = [10,20,30]
+#eval map (λ x => x * 10) [1,2,3] = [10,20,30]
 
 def filter {a : Type}  : (a → Bool) → List a → List a
 | _, [] => []
@@ -114,6 +114,16 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
+def scanr : (a → b → b) → b → List a → List b
+| _, q₀, [] => [q₀]
+| f, q₀, (x :: xs) =>
+  match scanr f q₀ xs with
+  | [] => []
+  | qs@(q :: _) => f x q :: qs
+
+#eval scanr Nat.add 0 [1,2,3,4]
+#eval scanr Nat.add 42 []
+
 def scanl : (b → a → b ) → b → List a → List b
 | _, e, [] => [e]
 | f, e, (x :: xs) => e :: scanl f (f e x) xs
@@ -141,24 +151,26 @@ theorem map_compose {α β γ : Type} (f : β → γ) (g : α → β) (l : List 
 theorem foldl_comp {α β: Type} (y: α) (e : β) (f : β → α → β):
 foldl f e ∘ (fun x => y :: x) = foldl f (f e y) := by rfl
 
-theorem change_maps {α : Type} (g : α -> α ) (a : List α): List.map g a = map g a := by induction a with | nil => rfl |cons a as ih => rw [map]; rw [List.map]; exact congrArg (List.cons (g a)) ih
+theorem map_map {α : Type} (g : α -> α ) (a : List α): List.map g a = map g a := by
+  induction a with
+  | nil => rfl
+  | cons a as ih =>
+    rw [map,List.map]
+    rw [ih]
+    done
 
 example {a b : Type} (f : b → a → b) (e : b) :
-  map (foldl f e) ∘ inits = scanl f e := by
+   map (foldl f e) ∘ inits = scanl f e := by
   funext xs
   induction xs generalizing e with
   | nil => simp [map, inits, foldl, scanl]
   | cons x xs ih =>
-  rw [Function.comp]
-  rw [inits]
-  rw [map]
-  rw [foldl]
-  rw [change_maps]
-  rw [←map_compose]
-  rw [foldl_comp]
-  rw [scanl]
-  exact congrArg (List.cons e) (ih (f e x))
-
+    rw [Function.comp]
+    rw [inits,map,foldl,map_map,←map_compose]
+    rw [foldl_comp,scanl]
+    have hx := ih (f e x)
+    rw [← hx]
+    simp
 
 -- 1.3 Inductive and recursive definitions
 
@@ -392,36 +404,5 @@ example : fibFast 4 = 5 := by
   unfold fibFast.loop
   rfl
 
--- Exercicios
-
-/-
-def dropWhile (p : α → Bool) (xs : List α) : List α := sorry
-
-def uncons (xs : List α) : Option (α × List α) := sorry
-
-def wrap (a : α) : List α := sorry
-
-def unwrap (a : List α) : α := sorry
-
-def single (a : List α) : Bool := sorry
-
-/- need to be linear -/
-def reverse (a : List α) : List α := sorry
-
-example : (foldr f e) ∘ (filter p) = foldr ???? := sorry
-
-/- as an instance of foldr -/
-def takeWhile (xs : List α) (p : α → Bool) : List α := sorry
-
-example : map (foldl f e) ∘ inits = ????  := sorry
-
-example : map (foldr f e) ∘ tails = ???? := sorry
-
-/- determining whether a sequence of numbers is steep. Ex 1.21 -/
-def steep₁ (xs : List Nat) : Bool := sorry
-
-/- determining whether a sequence of numbers is steep. Ex 1.21 using tupling -/
-def steep₂ (xs : List Nat) : Bool := sorry
--/
 
 end Chapter1

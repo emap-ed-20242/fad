@@ -1,2 +1,2 @@
 
-def hello := "world"
+/- basic definitions can be copied here -/

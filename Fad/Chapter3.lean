@@ -65,7 +65,7 @@ https://lean-lang.org/functional_programming_in_lean/props-proofs-indexing.html#
 #eval ([] : List Nat).head?
 #eval [1,2].head?
 
-#eval [].head (by simp)
+-- #eval [].head (by simp)
 #eval [1,2].head (by simp)
 
 def mytest (n : Nat) := n
