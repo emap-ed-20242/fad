@@ -1,4 +1,3 @@
-
 import Fad.Chapter1
 
 namespace Chapter1Ex
@@ -102,6 +101,8 @@ example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
 
 example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
 
+set_option trace.profiler true
+
 def steep₀ (xs : List Nat) : Bool :=
   let sum (xs : List Nat) : Nat :=
     xs.foldl (· + ·) 0
@@ -109,19 +110,17 @@ def steep₀ (xs : List Nat) : Bool :=
   | []  => true
   | x :: xs => x > sum xs ∧ steep₀ xs
 
-set_option trace.profiler true
-
 #eval steep₀ (List.iota 10000000)
 
 def steep₁ (xs : List Nat) : Bool :=
-  let rec sum : List Nat → Nat
-   | [] => 0
-   | x :: xs  => x + sum xs
+  let rec sum : List Nat → Nat → Nat
+   | [], s => s
+   | x :: xs, s  => sum xs (x + s)
   match xs with
   | []  => true
-  | x :: xs => x > sum xs ∧ steep₁ xs
+  | x :: xs => x > sum xs 0 ∧ steep₁ xs
 
-#eval steep₁ [2,0]
+#eval steep₁ (List.iota 10000000)
 
 def steep₂ : List Nat → Bool :=
  Prod.snd ∘ faststeep
@@ -131,6 +130,9 @@ def steep₂ : List Nat → Bool :=
   | x :: xs =>
     let (s, b) := faststeep xs
     (x + s, x > s ∧ b)
+
+-- stack overflow
+-- #reduce steep₂ (List.range 100000)
 
 def steep₃ : List Nat → Bool :=
  Prod.snd ∘ faststeep

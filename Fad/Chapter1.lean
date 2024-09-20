@@ -254,7 +254,7 @@ def perm : List a → List (List a)
       (picks (x :: xs)).attach
  termination_by xs => xs.length
 
-#eval perm [1,2,3]
+-- #eval perm [1,2,3]
 
 partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
   if p x then x
