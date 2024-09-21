@@ -1,4 +1,3 @@
-
 import Fad.Chapter1
 
 namespace Chapter1Ex
@@ -63,7 +62,6 @@ example : ∀ xs : List Nat, single xs = true ↔ xs.length = 1 := by
     rw [single_aux]
     simp [List.length]
 
-
 def reverse {α : Type} (a : List α) : List α :=
   let rec helper (a : List α) (res : List α) : List α :=
     match a with
@@ -74,6 +72,8 @@ def reverse {α : Type} (a : List α) : List α :=
 example : reverse [3, 4, 5] = [5, 4, 3] := rfl
 example : reverse ([] : List Nat) = [] := rfl
 
+example (xs : List Nat): reverse (reverse xs) = xs := by
+  sorry
 
 example (f : α → β → β) :
  (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
@@ -156,15 +156,26 @@ example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := by
 
 example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
 
+set_option trace.profiler true
 
-def steep₁ (xs : List Nat) : Bool :=
-  let rec sum : List Nat → Nat
-   | [] => 0
-   | x :: xs  => x + sum xs
+def steep₀ (xs : List Nat) : Bool :=
+  let sum (xs : List Nat) : Nat :=
+    xs.foldl (· + ·) 0
   match xs with
   | []  => true
-  | x :: xs => x > sum xs ∧ steep₁ xs
+  | x :: xs => x > sum xs ∧ steep₀ xs
 
+#eval steep₀ (List.iota 10000000)
+
+def steep₁ (xs : List Nat) : Bool :=
+  let rec sum : List Nat → Nat → Nat
+   | [], s => s
+   | x :: xs, s  => sum xs (x + s)
+  match xs with
+  | []  => true
+  | x :: xs => x > sum xs 0 ∧ steep₁ xs
+
+#eval steep₁ (List.iota 10000000)
 
 def steep₂ : List Nat → Bool :=
  Prod.snd ∘ faststeep
@@ -174,6 +185,18 @@ def steep₂ : List Nat → Bool :=
   | x :: xs =>
     let (s, b) := faststeep xs
     (x + s, x > s ∧ b)
+
+-- stack overflow
+-- #reduce steep₂ (List.range 100000)
+
+def steep₃ : List Nat → Bool :=
+ Prod.snd ∘ faststeep
+ where
+  faststeep (xs : List Nat) : (Nat × Bool) :=
+   xs.reverse.foldl (λ t x => (x + t.1, x > t.1 ∧ t.2) ) (0, true)
+
+#eval steep₃ [8,5,2]
+#eval steep₃ (List.range 100000)
 
 example : steep₁ [8,4,2,1] = steep₂ [8,4,2,1] := rfl
 example : steep₁ [] = steep₂ [] := rfl

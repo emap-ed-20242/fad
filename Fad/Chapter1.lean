@@ -114,6 +114,12 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
+def scanr₀ : (a → b → b) → b → List a → List b
+| _, q₀, [] => [q₀]
+| f, q₀, (x :: xs) =>
+  let qs := scanr₀ f q₀ xs
+  f x (List.head qs (by sorry)) :: qs
+
 def scanr : (a → b → b) → b → List a → List b
 | _, q₀, [] => [q₀]
 | f, q₀, (x :: xs) =>
@@ -185,6 +191,7 @@ def concatMap (f : a → List b) : List a → List b :=
 
 #eval concatMap (String.toList ·) ["aa", "bb", "cc"]
 
+
 def perm₀ : List a → List (List a)
  | [] => [[]]
  | (x :: xs) => concatMap (inserts x ·) (perm₀ xs)
@@ -193,22 +200,20 @@ def perm₁ : List a → List (List a) := foldr step [[]]
  where
   step x xss := concatMap (inserts x) xss
 
-example (x : Nat)
- : concatMap (inserts x) = (concatMap ∘ inserts) x := by
-  unfold concatMap
-  rewrite [Function.comp]
-  rfl
-
 def perm₁' : List a → List (List a) :=
   foldr (concatMap ∘ inserts) [[]]
 
-#eval perm₁ "12".toList |>.map List.asString
-
+#eval perm₁ [1,2]
 
 def picks {a : Type} : List a → List (a × List a)
 | [] => []
 | (x :: xs) =>
    (x, xs) :: ((picks xs).map (λ p => (p.1, x :: p.2)))
+
+partial def perm₂ : List a → List (List a)
+  | [] => [[]]
+  | xs => concatMap  (λ p => (perm₂ p.2).map (p.1 :: ·)) (picks xs)
+
 
 theorem picks_less :
   p ∈ picks xs → p.2.length < xs.length := by
@@ -228,12 +233,6 @@ theorem picks_less :
     | inr h =>
       simp; rw [Nat.lt_succ_iff, Nat.le_iff_lt_or_eq]; left; apply ih
       apply Exists.elim h; intro q hq; sorry
-
-
-partial def perm₂ : List a → List (List a)
-  | [] => [[]]
-  | xs => concatMap  (λ p => (perm₂ p.2).map (p.1 :: ·)) (picks xs)
-
 
 theorem perm_aux {a : Type}
   (v : a) (l : List a)
@@ -255,6 +254,7 @@ def perm : List a → List (List a)
       (picks (x :: xs)).attach
  termination_by xs => xs.length
 
+-- #eval perm [1,2,3]
 
 partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
   if p x then x
