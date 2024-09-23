@@ -75,6 +75,11 @@ example : reverse ([] : List Nat) = [] := rfl
 example (xs : List Nat): reverse (reverse xs) = xs := by
   sorry
 
+
+theorem foldr_filter_aux :
+ ((foldr f e) ∘ (filter p)) ys = foldr f e (filter p ys) := by
+  simp
+
 example (f : α → β → β) :
  (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
  := by
@@ -82,7 +87,6 @@ example (f : α → β → β) :
   induction xs with
   | nil => rfl
   | cons y ys ih =>
-
     rw [Function.comp]
     rw [filter]
     by_cases h : p y = true
@@ -90,15 +94,12 @@ example (f : α → β → β) :
     rw [foldr]
     rw [foldr]
     rw [if_pos h]
-    have lh : ((foldr f e) ∘ (filter p)) (ys) = foldr f e (filter p (ys)) := by rw [Function.comp]
-    rewrite [←lh]
+    rewrite [←foldr_filter_aux]
     exact congrArg (f y) ih
-
     rw [if_neg h]
     rw [foldr]
     rw [if_neg h]
-    have lh : ((foldr f e) ∘ (filter p)) (ys) = foldr f e (filter p (ys)) := by rw [Function.comp]
-    rewrite [←lh]
+    rewrite [←foldr_filter_aux]
     exact ih
 
 
