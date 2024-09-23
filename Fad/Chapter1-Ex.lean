@@ -77,7 +77,29 @@ example (xs : List Nat): reverse (reverse xs) = xs := by
 
 example (f : α → β → β) :
  (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
- := sorry
+ := by
+  funext xs
+  induction xs with
+  | nil => rfl
+  | cons y ys ih =>
+
+    rw [Function.comp]
+    rw [filter]
+    by_cases h : p y = true
+    rw [if_pos h]
+    rw [foldr]
+    rw [foldr]
+    rw [if_pos h]
+    have lh : ((foldr f e) ∘ (filter p)) (ys) = foldr f e (filter p (ys)) := by rw [Function.comp]
+    rewrite [←lh]
+    exact congrArg (f y) ih
+
+    rw [if_neg h]
+    rw [foldr]
+    rw [if_neg h]
+    have lh : ((foldr f e) ∘ (filter p)) (ys) = foldr f e (filter p (ys)) := by rw [Function.comp]
+    rewrite [←lh]
+    exact ih
 
 
 def takeWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α :=
@@ -96,8 +118,41 @@ example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
 #eval takeWhile (· > 5) []
 #eval takeWhile (· < 5) [4, 7, 8]
 
+theorem map_compose {α β γ : Type} (f : β → γ) (g : α → β) (l : List α) :
+  map (f ∘ g) l = map f (map g l) := by
+  induction l with
+  | nil => rfl
+  | cons x xs ih =>
+  simp [map, ih]
 
-example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := sorry
+theorem foldl_comp {a b: Type} (y: a) (e : b) (f : b → a → b):
+foldl f e ∘ (fun x => y :: x) = foldl f (f e y) := by rfl
+
+theorem map_equal (a : List α) (f : α → β): map f a = List.map f a := by
+induction a with
+| nil => rfl
+| cons a as ih =>
+  simp
+  rw [map]
+  exact congrArg (List.cons (f a)) ih
+
+
+example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := by
+  funext xs
+  induction xs generalizing e with
+  | nil => exact rfl
+  | cons y ys ih =>
+  rw [Function.comp]
+  rw [inits]
+  rw [scanl]
+  rw [map]
+  simp [foldl]
+  rw [←map_equal]
+  rw [←map_compose]
+  rw [foldl_comp]
+  have h : map (foldl f (f e y)) (inits ys) = (map (foldl f (f e y)) ∘ inits) ys := by rfl
+  rw [h]
+  exact ih
 
 example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
 
@@ -147,6 +202,7 @@ example : steep₁ [8,4,2,1] = steep₂ [8,4,2,1] := rfl
 example : steep₁ [] = steep₂ [] := rfl
 
 example : ∀ xs, steep₁ xs = steep₂ xs := sorry
+
 
 /-
 | 1.11 | Carlos César de Oliveira Fonseca       |
