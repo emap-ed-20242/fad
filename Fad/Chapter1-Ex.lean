@@ -78,7 +78,7 @@ example (xs : List Nat): reverse (reverse xs) = xs := by
 
 theorem foldr_filter_aux :
  ((foldr f e) ∘ (filter p)) ys = foldr f e (filter p ys) := by
-  simp
+  rfl
 
 example (f : α → β → β) :
  (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
@@ -155,7 +155,14 @@ example (f : α → β → α) : map (foldl f e) ∘ inits = scanl f e := by
   rw [h]
   exact ih
 
-example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := sorry
+example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := by
+  funext xs
+  induction xs with
+  | nil =>
+    simp [Function.comp]
+    simp [tails,map,scanr,foldr]
+  | cons y ys ih =>
+    sorry
 
 set_option trace.profiler true
 

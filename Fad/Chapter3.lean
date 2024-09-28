@@ -5,39 +5,22 @@ open List (reverse tail cons)
 
 -- 3.1 Symmetric lists
 
+def _root_.List.single (xs : List α) : Bool := xs.length = 1
+
+def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
+ (xs.take n, xs.drop n)
+
+
+/- motivação: algumas operações em listas encadeadas tem custo linear
+   e outras constante. -/
+
 def snoc {a : Type} (x : a) (xs : List a) : List a :=
   xs ++ [x]
 
+
+namespace SL1
+
 abbrev SymList (α : Type u) := (List α) × (List α)
-
-def single (xs : List α) : Prop := xs.length = 1
-
-structure SymList' (α : Type) where
-  lhs : List α
-  rhs : List α
-  ok : (lhs.isEmpty → rhs.isEmpty ∨ single rhs) ∧
-       (rhs.isEmpty → lhs.isEmpty ∨ single lhs)
- deriving Repr
-
-#eval SymList'.mk [1,2,3] [4,5,6] (by
-  apply And.intro
-  { intro h; simp at h }
-  { intro h; simp at h })
-
-#eval { lhs := [1,2,3], rhs := [4,5,6], ok := (by
-  apply And.intro
-  { intro h; simp at h }
-  { intro h; simp at h }) : SymList' Nat }
-
-
-def P (sl : SymList' a) : Prop :=
- sl.1.length > sl.2.length
-
-example : ∀ sl : SymList' Nat, P sl := by
-  intro sl
-  cases sl with
-  | mk as bs h => sorry
-
 
 #check ([],[])
 
@@ -47,8 +30,8 @@ def fromSL (sl : SymList a) : List a :=
  sl.1 ++ sl.2.reverse
 
 def snocSL : a → SymList a → SymList a
-| z, ([],    ys) => (ys, [z])
-| z, (b::bs, ys) => (b::bs, z :: ys)
+| z, ([], ys) => (ys, [z])
+| z, (bs, ys) => (bs, z :: ys)
 
 def consSL : a → SymList a → SymList a
 | z, (xs, []) => ([z], xs)
@@ -66,28 +49,30 @@ def lastSL : SymList a → Option a
 
 #eval fromSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
 
-def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
- (xs.take n, xs.drop n)
-
-#eval [1, 2, 3, 4, 5].splitAt 2
-
 def tailSL (sl : SymList a) : Option (SymList a) :=
- let (us, vs) := sl.2.splitAt (sl.2.length / 2)
  match sl with
  | ([],       []) => none
  | ([],  _ :: []) => some nilSL
- | (_ :: [],   _) => some (reverse vs, us)
+ | (_ :: [],  ys) =>
+   let (us, vs) := ys.splitAt (ys.length / 2)
+   some (reverse vs, us)
  | (xs,       ys) => some (tail xs, ys)
 
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
-#eval do let a ← tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))); pure $ fromSL a
+#eval do
+ let a ← tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
+ pure $ fromSL a
 
-#check pure ∘ fromSL
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))) >>= pure ∘ fromSL
 
 
+end SL1
+
 /-
  https://lean-lang.org/functional_programming_in_lean/props-proofs-indexing.html#evidence-as-arguments
+
+ Uma segunda implementação onde o tipo carrega a prova das invariantes da
+ estrutura.
 -/
 
 #check ([] : List Nat)
@@ -97,23 +82,60 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
 -- #eval [].head (by simp)
 #eval [1,2].head (by simp)
 
-def mytest (n : Nat) := n
-#eval mytest 3
+def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
+#eval test [1, 2, 3, 4] (by simp)
 
-def terceiro (xs : List α) (ok : xs.length > 2) : α := xs[2]
-#eval terceiro [1, 2, 3, 4] (by simp)
 
-example
-  : cons x ∘ fromSL = fromSL ∘ consSL x := by
-  funext (as, bs)
-  sorry
+namespace SL2
 
-/- pagina 45 provar a equacao -/
-#eval fromSL ([],[1,2,3] ++ [4,5,6])
-#eval reverse [4,5,6] ++ reverse [1,2,3]
+structure SymList (α : Type) where
+  lhs : List α
+  rhs : List α
+  ok : (lhs.isEmpty → rhs.isEmpty ∨ rhs.length = 1) ∧
+       (rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1)
+ deriving Repr
+
+ def P (sl : SymList a) : Prop :=
+ sl.1.length > sl.2.length
+
+example : ∀ sl : SymList Nat, P sl := by
+  intro sl
+  cases sl with
+  | mk as bs h => sorry
+
+#eval SymList.mk [1,2,3] [4,5,6] (by simp)
+#eval { lhs := [], rhs := [6], ok := (by simp) : SymList Nat }
+
+def fromSL (sl : SymList a) : List a :=
+ sl.lhs ++ sl.rhs.reverse
+
+def nilSL : SymList a := SymList.mk [] [] (by simp)
+
+def snocSL : a → SymList a → SymList a
+| z, SymList.mk [] bs _ => SymList.mk bs [z] (by simp)
+| z, SymList.mk (a::as) bs _ => SymList.mk (a::as) (z :: bs) (by simp)
+
+def consSL : a → SymList a → SymList a
+| z, SymList.mk xs [] _ => SymList.mk [z] xs (by simp)
+| z, SymList.mk xs (y::ys) _ => SymList.mk (z :: xs) (y::ys) (by simp)
+
+def toSL : List a → SymList a
+ | [] => nilSL
+ | x :: xs => consSL x (toSL xs)
 
 example (us vs : List Nat)
  : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
+
+example : cons x ∘ fromSL = fromSL ∘ consSL x := by
+ funext s
+ cases s with
+ | mk as bs h =>
+   simp [fromSL]
+   rewrite (config := {occs := .pos [2]}) [consSL]
+   sorry
+
+end SL2
+
 
 
 -- 3.2 Random-access lists
