@@ -157,6 +157,26 @@ example : cons x ∘ fromSL = fromSL ∘ consSL x := by
     | cons b bs => -- non-empty rhs
       simp [consSL, fromSL]
 
+
+example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
+ funext s
+ cases s with
+ | mk as bs h =>
+   induction bs with
+   | nil =>
+     simp [consSL, fromSL]
+     simp at h
+     apply Or.elim h
+     intro h1 ; rw [h1]; simp
+     intro h1
+     induction as with
+     | nil => simp
+     | cons z zs h2 =>
+       simp at h1
+       rw [h1]; simp [List.reverse]
+   | cons z zs ih => sorry
+
+
 end SL2
 
 
