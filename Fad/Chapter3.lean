@@ -126,6 +126,38 @@ def toSL : List a → SymList a
 example (us vs : List Nat)
  : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
 
+set_option trace.Meta.Tactic.simp.rewrite true in
+example : cons x ∘ fromSL = fromSL ∘ consSL x := by
+  funext s
+  cases s with
+  | mk as bs ok =>
+    simp [fromSL]
+    cases bs with
+    | nil => -- empty rhs
+      have h := ok.2 -- rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1
+      specialize h rfl
+      cases h with
+      | inl lhs_empty => -- lhs is empty
+        have as_empty : as = [] := by
+          cases as with
+          | nil => rfl
+          | cons _ _ => contradiction
+        subst as_empty
+        rfl
+      | inr lhs_single => -- lhs is single
+        cases as with
+        | nil => contradiction
+        | cons a as' =>
+          cases as' with
+          | nil =>
+            rfl
+          | cons b bs' =>
+            have h_len : (a :: b :: bs').length = 1 := lhs_single
+            simp at h_len
+    | cons b bs => -- non-empty rhs
+      simp [consSL, fromSL]
+
+
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
  cases s with
