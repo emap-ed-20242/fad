@@ -1,8 +1,8 @@
 import Fad.Chapter3
-import Fad.Chapter2
+import Fad.Chapter1
 
-namespace Chapter3Ex
-open Chapter3
+namespace Chapter3
+open SL1
 
 /-
 | 3.12 | Anderson Gabriel Falcão dos Santos     |
@@ -14,8 +14,7 @@ open Chapter3
 |  3.8 | Luís Filipe Novaes de Souza            |
 | 3.15 | Nícolas Mateus Spaniol                 |
 | 3.11 | Pablo Andrade Carvalho Barros          |
-|  3.7 | Sílvio Estêvão Seibert Zacomelli       |
-|  3.6 | Thiago Franke Melchiors                |
+|  3.6 | Thiago Franke Melchiors                | not
 | 3.13 | Wellington José Leite da Silva         |
 -/
 
@@ -35,12 +34,11 @@ open Chapter3
 
 -- 3.2
 
--- I want prop?
 def nullSL {α : Type} : SymList α → Bool
 | (xs, ys) => xs.isEmpty ∧ ys.isEmpty
 
 def singleSL {α : Type} : SymList α → Prop
-| (xs, ys) => (xs.isEmpty ∧ single ys) ∨ (ys.isEmpty ∧ single xs)
+| (xs, ys) => (xs.isEmpty ∧ ys.single) ∨ (ys.isEmpty ∧ xs.single)
 
 def lengthSL {α : Type} : SymList α → Nat
 | (xs, ys) => xs.length + ys.length
@@ -80,10 +78,25 @@ def dropWhileSL' (p : α → Bool) (sl : SymList α) : SymList α :=
     | some us => dropWhileSL p us
    else sl
 
--- #check decide (nullSL ([], []))  how to make it ?
-
 #eval [1,2,3,4].dropWhile (· < 3)
 #eval dropWhileSL (· < 3) (toSL [1,2,3,4]) |> fromSL
 
+-- 3.6
 
-end Chapter3Ex
+def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
+ if nullSL xs then 
+  snocSL xs nilSL
+ else 
+  match (initSL xs) with
+  | none => nilSL
+  | some i => snocSL xs (initsSL i)
+
+-- 3.7
+
+def inits {α : Type} (xs : List α) : List (List α) := 
+ ((List.map List.reverse) ∘ (Chapter1.scanl (flip List.cons) [])) xs
+
+#eval inits [1,2,3,4]
+
+
+end Chapter3
