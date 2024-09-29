@@ -126,13 +126,24 @@ def toSL : List a → SymList a
 example (us vs : List Nat)
  : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
 
-example : cons x ∘ fromSL = fromSL ∘ consSL x := by
+example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
  cases s with
  | mk as bs h =>
-   simp [fromSL]
-   rewrite (config := {occs := .pos [2]}) [consSL]
-   sorry
+   induction bs with
+   | nil =>
+     simp [consSL, fromSL]
+     simp at h
+     apply Or.elim h
+     intro h1 ; rw [h1]; simp
+     intro h1
+     induction as with
+     | nil => simp
+     | cons z zs h2 =>
+       simp at h1
+       rw [h1]; simp [List.reverse]
+   | cons z zs ih => sorry
+
 
 end SL2
 
