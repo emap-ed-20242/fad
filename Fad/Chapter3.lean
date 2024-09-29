@@ -171,10 +171,10 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
      intro h1
      induction as with
      | nil => simp
-     | cons z zs h2 =>
+     | cons z zs _ =>
        simp at h1
        rw [h1]; simp [List.reverse]
-   | cons z zs ih => sorry
+   | cons z zs _ => simp [consSL, fromSL]
 
 
 end SL2
