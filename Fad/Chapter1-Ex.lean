@@ -164,7 +164,7 @@ example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := by
   | cons y ys ih =>
     sorry
 
-set_option trace.profiler true
+-- set_option trace.profiler true
 
 def steep₀ (xs : List Nat) : Bool :=
   let sum (xs : List Nat) : Nat :=
@@ -211,9 +211,19 @@ example : steep₁ [] = steep₂ [] := rfl
 
 example : ∀ xs, steep₁ xs = steep₂ xs := sorry
 
+def integer: List Nat → Nat :=
+  List.foldl shiftl 0
+  where
+   shiftl (n d : Nat) : Nat := 10 * n + d
 
-/-
-| 1.11 | Carlos César de Oliveira Fonseca       |
--/
+#eval integer [1,2,3,5,6]
+
+def fraction : List Nat → Float :=
+  List.foldr shiftr 0
+  where
+  shiftr (d : Nat) (n : Float) : Float := (d.toFloat + n)/10
+
+#eval fraction [1,2,3,5,3,4]
+
 
 end Chapter1Ex
