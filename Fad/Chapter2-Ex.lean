@@ -1,7 +1,6 @@
 import Fad.Chapter2
 
-namespace Chapter2Ex
-open Chapter2
+namespace Chapter2
 
 /-
 |  2.9 | Luiz Eduardo Bravin                    |
@@ -10,4 +9,4 @@ open Chapter2
 -/
 
 
-end Chapter2Ex
+end Chapter2

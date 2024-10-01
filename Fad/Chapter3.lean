@@ -275,7 +275,7 @@ def fetchRA [ToString a] (n : Nat) (ra : RAList a) : Option a :=
  | k, (one t :: xs) =>
    if k < size t then fetchT k t else fetchRA (k - size t) xs
 
-#eval fetchRA 10 [zero,
+#eval fetchRA 2 [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]

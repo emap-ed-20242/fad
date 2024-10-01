@@ -1,8 +1,6 @@
 import Fad.Chapter1
 
-namespace Chapter1Ex
-open Chapter1
-
+namespace Chapter1
 
 def dropWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α
 | [] => []
@@ -11,6 +9,7 @@ def dropWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α
 #eval dropWhile (· < 5) []
 #eval dropWhile (· < 5) (List.iota 10).reverse
 
+-- 1.2
 
 def uncons {α : Type} (xs : List α) : Option (α × List α) :=
   match xs with
@@ -23,11 +22,12 @@ example : uncons [1, 2] = some (1, [2]) := rfl
 example : uncons [1, 2, 3, 4, 5] = some (1, [2, 3, 4, 5]) := rfl
 
 
+-- 1.3
+
 def wrap {α : Type} (a : α) : List α := [a]
 
 example : wrap 0 = [0] := rfl
 example : wrap [42] = [[42]] := rfl
-
 
 def unwrap {α : Type} (a : List α) : Option α :=
   match a with
@@ -37,7 +37,6 @@ def unwrap {α : Type} (a : List α) : Option α :=
 example : unwrap [42] = some 42 := rfl
 example : unwrap [0, 1] = none := rfl
 example : unwrap (@List.nil Nat) = none := rfl
-
 
 def single {α : Type} (a : List α) : Bool :=
   match a with
@@ -62,18 +61,21 @@ example : ∀ xs : List Nat, single xs = true ↔ xs.length = 1 := by
     rw [single_aux]
     simp [List.length]
 
-def reverse {α : Type} (a : List α) : List α :=
+
+-- 1.4
+
+def reverse₀ {α : Type} (a : List α) : List α :=
   let rec helper (a : List α) (res : List α) : List α :=
     match a with
     | [] => res
     | x :: xs => helper xs (x :: res)
   helper a []
 
-example : reverse [3, 4, 5] = [5, 4, 3] := rfl
-example : reverse ([] : List Nat) = [] := rfl
+def reverse₁ {a : Type} : List a → List a :=
+ List.foldl (flip List.cons) []
 
-example (xs : List Nat): reverse (reverse xs) = xs := by
-  sorry
+example {a : Type} (xs : List a) :
+  reverse₁ (reverse₁ (xs)) = xs := sorry
 
 
 theorem foldr_filter_aux :
@@ -119,16 +121,6 @@ example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
 #eval takeWhile (· > 5) []
 #eval takeWhile (· < 5) [4, 7, 8]
 
-theorem map_compose {α β γ : Type} (f : β → γ) (g : α → β) (l : List α) :
-  map (f ∘ g) l = map f (map g l) := by
-  induction l with
-  | nil => rfl
-  | cons x xs ih =>
-  simp [map, ih]
-
-theorem foldl_comp {a b: Type} (y: a) (e : b) (f : b → a → b):
-foldl f e ∘ (fun x => y :: x) = foldl f (f e y) := by rfl
-
 theorem map_equal (a : List α) (f : α → β): map f a = List.map f a := by
 induction a with
 | nil => rfl
@@ -164,6 +156,25 @@ example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := by
   | cons y ys ih =>
     sorry
 
+
+-- 1.11
+
+def integer: List Nat → Nat :=
+  List.foldl shiftl 0
+  where
+   shiftl (n d : Nat) : Nat := 10 * n + d
+
+#eval integer [1,2,3,5,6]
+
+def fraction : List Nat → Float :=
+  List.foldr shiftr 0
+  where
+  shiftr (d : Nat) (n : Float) : Float := (d.toFloat + n)/10
+
+#eval fraction [1,2,3,5,3,4]
+
+
+-- 1.21
 -- set_option trace.profiler true
 
 def steep₀ (xs : List Nat) : Bool :=
@@ -194,8 +205,7 @@ def steep₂ : List Nat → Bool :=
     let (s, b) := faststeep xs
     (x + s, x > s ∧ b)
 
--- stack overflow
--- #reduce steep₂ (List.range 100000)
+-- #reduce steep₂ (List.range 100000) stack overflow
 
 def steep₃ : List Nat → Bool :=
  Prod.snd ∘ faststeep
@@ -211,19 +221,5 @@ example : steep₁ [] = steep₂ [] := rfl
 
 example : ∀ xs, steep₁ xs = steep₂ xs := sorry
 
-def integer: List Nat → Nat :=
-  List.foldl shiftl 0
-  where
-   shiftl (n d : Nat) : Nat := 10 * n + d
 
-#eval integer [1,2,3,5,6]
-
-def fraction : List Nat → Float :=
-  List.foldr shiftr 0
-  where
-  shiftr (d : Nat) (n : Float) : Float := (d.toFloat + n)/10
-
-#eval fraction [1,2,3,5,3,4]
-
-
-end Chapter1Ex
+end Chapter1

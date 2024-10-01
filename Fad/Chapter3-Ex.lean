@@ -84,19 +84,26 @@ def dropWhileSL' (p : α → Bool) (sl : SymList α) : SymList α :=
 -- 3.6
 
 def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
- if nullSL xs then 
+ if nullSL xs then
   snocSL xs nilSL
- else 
+ else
   match (initSL xs) with
   | none => nilSL
   | some i => snocSL xs (initsSL i)
 
+
 -- 3.7
 
-def inits {α : Type} (xs : List α) : List (List α) := 
+def inits {α : Type} (xs : List α) : List (List α) :=
  ((List.map List.reverse) ∘ (Chapter1.scanl (flip List.cons) [])) xs
 
 #eval inits [1,2,3,4]
+
+
+-- 3.8
+
+
+
 
 
 end Chapter3
