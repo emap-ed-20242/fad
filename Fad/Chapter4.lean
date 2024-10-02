@@ -3,11 +3,11 @@ import Fad.Chapter1
 
 namespace Chapter4
 
+namespace D1
+
 def search₀ (f : Nat → Nat) (t : Nat) : List Nat :=
  List.foldl (fun xs x => if t = f x then x :: xs else xs) []
   (List.range <| t + 1)
-
-#eval search₀ (fun x => x) 10
 
 
 def search₁ (f : Nat → Nat) (t : Nat) : List Nat :=
@@ -16,8 +16,6 @@ def search₁ (f : Nat → Nat) (t : Nat) : List Nat :=
   acc xs x := if t = f x then x :: xs else xs
   seek : (Nat × Nat) → List Nat
   | (a, b) => List.foldl acc [] <| List.range' a (b - a + 1)
-
-#eval search₁ (fun x => x) 10
 
 
 partial def search₂ (f : Nat → Nat) (t : Nat) : List Nat :=
@@ -29,8 +27,6 @@ partial def search₂ (f : Nat → Nat) (t : Nat) : List Nat :=
    else if t = f m then [m]
    else seek (m + 1) b
  seek 0 t
-
-#eval search₂ (fun x => x) 114
 
 
 def bound (f : Nat → Nat) (t : Nat) : (Int × Nat) :=
@@ -52,8 +48,38 @@ def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
  where
   x := smallest (bound f t) f t
 
-#eval bound (fun x => dbg_trace "fun {x}"; 2^x) 1024
-#eval search₃ (fun x => dbg_trace "fun {x}"; 2^x) 1024
+#eval bound (fun x => dbg_trace "fun {x}"; x) 1024
+#eval search₃ (fun x => dbg_trace "fun {x}"; x) 1024
 
+end D1
+
+
+namespace D2
+
+def search₀ (f : (Nat × Nat) → Nat) (t : Nat) : List (Nat × Nat) :=
+ List.filter (λ p => t = f p) allPairs
+ where
+  as := (List.range $ t + 1)
+  allPairs := Chapter1.concatMap (λ x => List.map (λ y => (x, y)) as) as
+
+#eval search₀ (λ p => dbg_trace "fun {p}"; p.1 + p.2) 5
+
+partial def searchIn (f : Nat × Nat → Nat) (t : Nat) : Nat × Nat → List (Nat × Nat)
+ | (x, y) =>
+  let z := f (x, y)
+  if (x > t ∨ y < 0) then []
+  else
+    if z < t then searchIn f t (x + 1, y)
+    else if z = t then (x,y) :: (searchIn f t (x + 1, y - 1))
+    else searchIn f t (x, y - 1)
+
+def search₁ (f : Nat × Nat → Nat) (t : Nat) : List (Nat × Nat) :=
+ searchIn f t (0, t)
+
+#eval search₁ (λ p => dbg_trace "fun {p} {p.1 + p.2}"; p.1 + p.2) 5
+#eval search₁ (λ (x,y) => dbg_trace "fun {x} {y} {x^2 + 3^y}"; x^2 + 3^y) 5
+
+
+end D2
 
 end Chapter4
