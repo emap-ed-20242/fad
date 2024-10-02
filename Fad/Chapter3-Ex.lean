@@ -104,6 +104,16 @@ def inits {α : Type} (xs : List α) : List (List α) :=
 
 
 
+-- 3.14
 
+def fa₀ (n : Nat) : Array Nat :=
+  Chapter1.scanl (· * ·) 1 (List.range' 1 n) |>.toArray
+
+/-
+def fa₁ (n : Nat) : Array Nat :=
+  1 :: (List.range' 1 n).map (fun i => i * (fa₁ (i - 1)).get (i - 1))
+-/
+
+#eval fa₀ 10
 
 end Chapter3

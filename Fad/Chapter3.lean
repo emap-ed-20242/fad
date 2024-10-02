@@ -180,7 +180,6 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
 end SL2
 
 
-
 -- 3.2 Random-access lists
 
 def fetch : Nat → List a → Option a
@@ -279,6 +278,12 @@ def fetchRA [ToString a] (n : Nat) (ra : RAList a) : Option a :=
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]
+
+
+-- 3.3 Arrays
+
+def listArray (xs : List α) : Array α :=
+ xs.toArray
 
 
 end Chapter3
