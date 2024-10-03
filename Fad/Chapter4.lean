@@ -64,21 +64,30 @@ def search₀ (f : (Nat × Nat) → Nat) (t : Nat) : List (Nat × Nat) :=
 
 #eval search₀ (λ p => dbg_trace "fun {p}"; p.1 + p.2) 5
 
-partial def searchIn (f : Nat × Nat → Nat) (t : Nat) : Nat × Nat → List (Nat × Nat)
- | (x, y) =>
-  let z := f (x, y)
-  if (x > t ∨ y < 0) then []
-  else
-    if z < t then searchIn f t (x + 1, y)
-    else if z = t then (x,y) :: (searchIn f t (x + 1, y - 1))
-    else searchIn f t (x, y - 1)
+/- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/.E2.9C.94.20proof.20termination -/
 
 def search₁ (f : Nat × Nat → Nat) (t : Nat) : List (Nat × Nat) :=
- searchIn f t (0, t)
+  searchIn 0 t []
+where
+  searchIn (x y : Nat) (sofar : List (Nat × Nat)) : List (Nat × Nat) :=
+    let z := f (x, y)
+    if x > t then sofar
+    else if z < t then
+      searchIn (x + 1) y sofar
+    else if z = t then
+      match y with
+      | 0 => (x,y) :: sofar
+      | y' + 1 => searchIn (x + 1) y ((x, y) :: sofar)
+    else
+      match y with
+      | 0 => sofar
+      | y + 1 => searchIn x y sofar
+  termination_by (t + 1 - x, y)
 
-#eval search₁ (λ p => dbg_trace "fun {p} {p.1 + p.2}"; p.1 + p.2) 5
-#eval search₁ (λ (x,y) => dbg_trace "fun {x} {y} {x^2 + 3^y}"; x^2 + 3^y) 5
-
+#eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x + y) 5
+#eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x^2 + 3^y) 12
+#eval search₁ (λ (x, y) => x^2 + 3^y) 2223
+#eval search₁ (λ (x, y) => x^2 + 3^y) 20259
 
 end D2
 
