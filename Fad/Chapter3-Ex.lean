@@ -1,5 +1,6 @@
 import Fad.Chapter3
 import Fad.Chapter1
+import Lean.Data.AssocList
 
 namespace Chapter3
 open SL1
@@ -115,5 +116,32 @@ def fa₁ (n : Nat) : Array Nat :=
 -/
 
 #eval fa₀ 10
+
+
+-- 3.15
+
+/- first we need to agree about accum
+
+ghci> import Data.Array
+ghci> listArray (0,5) [0..]
+array (0,5) [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5)]
+ghci> accum (\ a b -> a + b) (listArray (0,5) [0..10]) [(1,10),(2,10)]
+array (0,5) [(0,0),(1,11),(2,12),(3,3),(4,4),(5,5)]
+-/
+
+#eval (Fin.mk 3 (by simp) : Fin 4)
+
+def accum : (e → v → e) → Array e → List (Nat × v) → Array e
+ | _, a1, List.nil => a1
+ | f, a1, (p :: ps) =>
+   if h : p.1 < a1.size then
+    let i : Fin a1.size := Fin.mk p.1 h
+    accum f (a1.set i (f (a1.get i) p.2)) ps
+   else
+    accum f a1 ps
+
+#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10),(2,10)]
+
+
 
 end Chapter3
