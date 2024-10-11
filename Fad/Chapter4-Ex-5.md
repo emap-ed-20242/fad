@@ -2,4 +2,4 @@
 
 Indexing the coordinates from zero, the positions are (0, 9), (5, 6), (7, 5), (9, 0).
 
-![Path](https://ibb.co/b7SVVSR)	
+![Path](https://i.ibb.co/6N3SS3J/path.png)	
