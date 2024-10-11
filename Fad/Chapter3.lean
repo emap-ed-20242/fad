@@ -205,6 +205,14 @@ instance [ToString α] : ToString (Tree α) where
 def Tree.size : Tree a → Nat
  | leaf _ => 1
  | node n _ _ => n
+ 
+def Tree.height : Tree α → Nat
+| Tree.leaf _       => 1
+| Tree.node _ l r => 1 + max (Tree.height l) (Tree.height r)
+
+-- def Tree.height : Tree a  → Nat
+-- | Tree.empty        => 0
+-- | Tree.node l r => 1 + max (height l) (height r)
 
 def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
  node (t₁.size + t₂.size) t₁ t₂
