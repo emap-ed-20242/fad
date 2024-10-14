@@ -206,6 +206,11 @@ def Tree.size : Tree a → Nat
  | leaf _ => 1
  | node n _ _ => n
 
+
+def Tree.height : Tree α → Nat
+ | leaf _ => 1
+ | node _ t₁ t₂ => 1 + max t₁.height t₂.height
+ 
 def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
  node (t₁.size + t₂.size) t₁ t₂
 
