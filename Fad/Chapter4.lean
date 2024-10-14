@@ -43,6 +43,7 @@ partial def smallest (p : Int × Nat) (f : Nat → Nat) (t : Nat) : Nat :=
  where
   m := (p.1 + p.2) / 2
 
+
 def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
   if f x = t then [x] else []
  where
@@ -88,6 +89,28 @@ where
 #eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x^2 + 3^y) 12
 #eval search₁ (λ (x, y) => x^2 + 3^y) 2223
 #eval search₁ (λ (x, y) => x^2 + 3^y) 20259
+
+
+/- https://kmill.github.io/informalization/ucsc_cse_talk.pdf -/
+
+def scale (a : Array Int) (c : Int) : Array Int := Id.run do
+  let mut b : Array Int := #[]
+  for h: i in [0:a.size] do
+   b := b.push (c * a[i])
+  return b
+
+#eval scale #[1,2,3,4] 4
+#eval for i in [0:12] do println! i
+
+def myhead₁ (xs : List a) (h : xs.length ≠ 0) : a :=
+ match xs with
+ | [] => absurd rfl h
+ | x :: _ => x
+
+def myhead₂ (xs : List a) (h : xs.length ≠ 0) : a :=
+ match xs, h with
+ | x :: _, _ => x
+
 
 end D2
 
