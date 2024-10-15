@@ -160,6 +160,7 @@ end D2
 inductive Tree (α : Type) : Type
 | null : Tree α
 | node : (Tree α) → α → (Tree α) → Tree α
+deriving Repr
 
 def Tree.size : Tree a → Nat
 | null => 0
@@ -198,11 +199,18 @@ def Tree.height : Tree a → Nat
 | null => 0
 | node l _ r => 1 + (max l.height r.height)
 
+
 def mkTree : List Nat → Tree Nat
 | [] => Tree.null
 | x :: xs =>
-  let (ys, zs) := xs.partition (· < x)
-  Tree.node (mkTree ys) x (mkTree zs)
+  let p := xs.partition (· < x)
+  Tree.node (mkTree p.1) x (mkTree p.2)
+termination_by l => l.length
+decreasing_by
+ all_goals simp
+  [p, List.partition_eq_filter_filter,
+   List.length_filter_le, Nat.lt_add_one_of_le]
 
+#eval mkTree [1,2,3,4,5,6]
 
 end Chapter4
