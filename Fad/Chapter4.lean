@@ -3,6 +3,8 @@ import Fad.Chapter1
 
 namespace Chapter4
 
+-- 4.1 A one-dimensional search problem
+
 namespace D1
 
 def search₀ (f : Nat → Nat) (t : Nat) : List Nat :=
@@ -20,7 +22,6 @@ def search₁ (f : Nat → Nat) (t : Nat) : List Nat :=
 
 partial def search₂ (f : Nat → Nat) (t : Nat) : List Nat :=
  let rec seek (a b : Nat) : List Nat :=
-  -- dbg_trace "seek {a} {b}"
   let m := (a + b) / 2
    if a > b then  []
    else if t < f m then seek a (m - 1)
@@ -35,33 +36,37 @@ def bound (f : Nat → Nat) (t : Nat) : (Int × Nat) :=
   b := Chapter1.until' done (· * 2) 1
   done b := t ≤ f b
 
-partial def smallest (p : Int × Nat) (f : Nat → Nat) (t : Nat) : Nat :=
- let (a, b) := p
+partial def smallest (f : Nat → Nat) (t : Nat) : (Int × Nat) → Nat
+| (a, b) =>
+  let m := (a + b) / 2
   if a + 1 = b then b
-  else if t ≤ f m.toNat then smallest (a, m.toNat) f t
-  else smallest (m, b) f t
- where
-  m := (p.1 + p.2) / 2
+  else
+   if t ≤ f m.toNat
+   then
+    smallest f t (a, m.toNat)
+   else
+    smallest f t (m, b)
 
-
-def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
+partial def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
   if f x = t then [x] else []
  where
-  x := smallest (bound f t) f t
+  x := smallest f t (bound f t)
 
-#eval bound (fun x => dbg_trace "fun {x}"; x) 1024
-#eval search₃ (fun x => dbg_trace "fun {x}"; x) 1024
+#eval bound (fun x => dbg_trace "fun {x}"; x * x) 1024
+#eval search₃ (fun x => dbg_trace "fun {x}"; x * x) 1024
 
 end D1
 
 
+-- 4.2 A two-dimensional search problem
+
 namespace D2
 
 def search₀ (f : (Nat × Nat) → Nat) (t : Nat) : List (Nat × Nat) :=
- List.filter (λ p => t = f p) allPairs
+ ps.filter (λ p => t = f p)
  where
   as := (List.range $ t + 1)
-  allPairs := Chapter1.concatMap (λ x => List.map (λ y => (x, y)) as) as
+  ps := Chapter1.concatMap (λ x => as.map (λ y => (x, y))) as
 
 #eval search₀ (λ p => dbg_trace "fun {p}"; p.1 + p.2) 5
 
@@ -91,6 +96,42 @@ where
 #eval search₁ (λ (x, y) => x^2 + 3^y) 20259
 
 
+partial def helper (t : Nat) (f : Nat × Nat → Nat)
+ : (Nat × Nat) → (Nat × Nat) → List (Nat × Nat)
+ | (x₁, y₁), (x₂, y₂) =>
+  let c := (x₁ + x₂) / 2
+  let r := (y₁ + y₂) / 2
+  let x := D1.smallest (λ x => f (x,r)) t (x₁ - 1, x₂)
+  let y := D1.smallest (λ y => f (c,y)) t (y₂ - 1, y₁)
+  if x₂ < x₁ ∨ y₁ < y₂ then
+   []
+  else
+   if y₁ - y₂ ≤ x₂ - x₁ then
+    let z := f (x,r)
+    if z < t then
+     helper t f (x₁, y₁) (x₂, r + 1)
+    else if z = t then
+     (x, r) :: helper t f (x₁, y₁) (x - 1, r + 1) ++ helper t f (x + 1, r - 1) (x₂, y₂)
+    else
+     helper t f  (x₁, y₁) (x - 1, r + 1) ++ helper t f (x, r - 1) (x₂, y₂)
+   else
+    let z := f (c, y)
+    if z < t then
+     helper t f (c + 1, y₁) (x₂, y₂)
+    else if z = t then
+     (c, y) :: helper t f (x₁, y₁) (c - 1, y + 1) ++ helper t f (c + 1, y - 1) (x₂, y₂)
+    else
+     helper t f (x₁, y₁) (c - 1, y) ++ helper t f (c + 1, y - 1) (x₂, y₂)
+
+partial def search₂ (f : Nat × Nat → Nat) (t : Nat) : List (Nat × Nat) :=
+ let p := D1.smallest (λ y => f (0, y)) t (-1, t)
+ let q := D1.smallest (λ x => f (x, 0)) t (-1, t)
+ helper t f (0, p) (q, 0)
+
+
+-- BUG #eval helper 12 (λ (x, y) => x^2 + 3^y) (0, 12) (12,0)
+
+
 /- https://kmill.github.io/informalization/ucsc_cse_talk.pdf -/
 
 def scale (a : Array Int) (c : Int) : Array Int := Id.run do
@@ -111,7 +152,57 @@ def myhead₂ (xs : List a) (h : xs.length ≠ 0) : a :=
  match xs, h with
  | x :: _, _ => x
 
-
 end D2
+
+
+-- 4.3 Binary search trees
+
+inductive Tree (α : Type) : Type
+| null : Tree α
+| node : (Tree α) → α → (Tree α) → Tree α
+
+def Tree.size : Tree a → Nat
+| null => 0
+| node t₁ _ t₂ => 1 + t₁.size + t₂.size
+
+def Tree.flatten : Tree a → List a
+| null => []
+| node l x r => l.flatten ++ [x] ++ r.flatten
+
+
+/- failed to synthesize decidable
+def search {a b : Type} [LT b] (f : a → b) : b → Tree a → Option a
+| _, Tree.null => none
+| k, Tree.node l x r =>
+  if f x < k then
+   search f k r
+  else
+   if f x = k then
+    some x
+   else
+    search f k l
+-/
+
+def search (f : Nat → Nat) : Nat → Tree Nat → Option Nat
+| _, Tree.null => none
+| k, Tree.node l x r =>
+  if f x < k then
+   search f k r
+  else
+   if f x = k then
+    some x
+   else
+    search f k l
+
+def Tree.height : Tree a → Nat
+| null => 0
+| node l _ r => 1 + (max l.height r.height)
+
+def mkTree : List Nat → Tree Nat
+| [] => Tree.null
+| x :: xs =>
+  let (ys, zs) := xs.partition (· < x)
+  Tree.node (mkTree ys) x (mkTree zs)
+
 
 end Chapter4
