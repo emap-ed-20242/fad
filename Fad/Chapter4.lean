@@ -11,7 +11,6 @@ def search₀ (f : Nat → Nat) (t : Nat) : List Nat :=
  List.foldl (fun xs x => if t = f x then x :: xs else xs) []
   (List.range <| t + 1)
 
-
 def search₁ (f : Nat → Nat) (t : Nat) : List Nat :=
   seek (0, t)
  where
@@ -20,13 +19,21 @@ def search₁ (f : Nat → Nat) (t : Nat) : List Nat :=
   | (a, b) => List.foldl acc [] <| List.range' a (b - a + 1)
 
 
-partial def search₂ (f : Nat → Nat) (t : Nat) : List Nat :=
+def search₂ (f : Nat → Nat) (t : Nat) : List Nat :=
  let rec seek (a b : Nat) : List Nat :=
   let m := (a + b) / 2
-   if a > b then  []
-   else if t < f m then seek a (m - 1)
-   else if t = f m then [m]
-   else seek (m + 1) b
+   if h₁ : a > b then  []
+   else if h₂ : t < f m then
+    have : (a + b) / 2 - 1 - a < b - a := by
+     rw [Nat.not_gt_eq] at h₁
+     sorry
+    seek a (m - 1)
+   else if h₃ : t = f m then [m]
+   else
+    have : b - ((a + b) / 2 + 1) < b - a := by
+     sorry
+    seek (m + 1) b
+ termination_by (b - a)
  seek 0 t
 
 
@@ -53,7 +60,10 @@ partial def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
   x := smallest f t (bound f t)
 
 #eval bound (fun x => dbg_trace "fun {x}"; x * x) 1024
-#eval search₃ (fun x => dbg_trace "fun {x}"; x * x) 1024
+
+#eval search₁ (fun x => dbg_trace "fun {x}"; x * x) 1024
+-- #eval search₂ (fun x => dbg_trace "fun {x}"; x * x) 2025
+#eval search₃ (fun x => dbg_trace "fun {x}"; x * x) 2025
 
 end D1
 
@@ -157,10 +167,21 @@ end D2
 
 -- 4.3 Binary search trees
 
+namespace Tree1
+
 inductive Tree (α : Type) : Type
 | null : Tree α
 | node : (Tree α) → α → (Tree α) → Tree α
-deriving Repr
+
+open Std.Format in
+
+def Tree.toFormat [ToString α] : (t : Tree α) → Std.Format
+| .null => Std.Format.text "."
+| .node t₁ x t₂ =>
+  nest 2 (bracket "(" (nest 2 (text s!"{x}" ++ line ++ t₁.toFormat ++ line ++ t₂.toFormat)) ")")
+
+instance [ToString a] : Repr (Tree a) where
+ reprPrec e _ := Tree.toFormat e
 
 def Tree.size : Tree a → Nat
 | null => 0
@@ -205,12 +226,92 @@ def mkTree : List Nat → Tree Nat
 | x :: xs =>
   let p := xs.partition (· < x)
   Tree.node (mkTree p.1) x (mkTree p.2)
-termination_by l => l.length
-decreasing_by
- all_goals simp
-  [p, List.partition_eq_filter_filter,
-   List.length_filter_le, Nat.lt_add_one_of_le]
+ termination_by l => l.length
+ decreasing_by
+  all_goals
+   simp [List.partition_eq_filter_filter,
+         List.length_filter_le, Nat.lt_add_one_of_le]
 
-#eval mkTree [1,2,3,4,5,6]
+
+#eval mkTree (List.iota 20)
+
+end Tree1
+
+namespace Tree2
+
+inductive Tree (α : Type) : Type
+| null : Tree α
+| node : Nat → (Tree α) → α → (Tree α) → Tree α
+
+open Std.Format in
+
+def Tree.toFormat [ToString α] : (t : Tree α) → Std.Format
+| .null => Std.Format.text "."
+| .node _ t₁ x t₂ =>
+  nest 2 (bracket "(" (nest 2 (text s!"{x}" ++ line ++ t₁.toFormat ++ line ++ t₂.toFormat)) ")")
+
+instance [ToString a] : Repr (Tree a) where
+ reprPrec e _ := Tree.toFormat e
+
+def Tree.height : (a : Tree α) -> Nat
+ | Tree.null => 0
+ | Tree.node x _ _ _ => x
+
+def Tree.flatten : Tree a → List a
+| null => []
+| node _ l x r => l.flatten ++ [x] ++ r.flatten
+
+def node (l : Tree α) (x : α) (r : Tree α): Tree α :=
+  Tree.node h l x r
+ where h := 1 + (max l.height r.height)
+
+
+def bias : Tree α → Int
+| .null => 0
+| .node _ l _ r => l.height - r.height
+
+def rotr : Tree α → Tree α
+| .null => .null
+| .node _ (.node _ ll y rl) x r => node ll y (node rl x r)
+| .node _ .null _ _ => .null
+
+def rotl : Tree α → Tree α
+| .null => .null
+| .node _ ll y (.node _ lrl z rrl) => node (node ll y lrl) z rrl
+| .node _ _ _ .null => .null
+
+
+def balance (t1 : Tree α)  (x : α)  (t2 : Tree α) : Tree α :=
+if Int.natAbs (h1 - h2) ≤ 1 then
+  node t1 x t2
+else if h1 == h2 + 2 then
+ rotateR t1 x t2
+else
+ rotateL t1 x t2
+where
+  h1 := t1.height
+  h2 := t2.height
+  rotateR t1 x t2 :=
+   if 0 <= bias t1 then
+    rotr (node t1 x t2)
+   else rotr (node (rotl t1) x t2)
+  rotateL t1 x t2 :=
+   if bias t2 <= 0 then
+    rotl (node t1 x t2)
+   else rotl (node t1 x (rotr t2))
+
+def insert {α : Type} [LT α] [DecidableRel (@LT.lt α _)] : (x : α) -> Tree α -> Tree α
+| x, .null => node .null x .null
+| x, .node h l y r =>
+  if x < y then balance (insert x l) y r else
+  if x > y then balance l y (insert x r) else .node h l y r
+
+def mkTree [LT α] [DecidableRel (@LT.lt α _)]
+ : (xs : List α) → Tree α :=
+ Chapter1.foldr insert (.null : Tree α)
+
+#eval mkTree (List.iota 20)
+
+end Tree2
 
 end Chapter4
