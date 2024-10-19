@@ -178,7 +178,8 @@ open Std.Format in
 def Tree.toFormat [ToString α] : (t : Tree α) → Std.Format
 | .null => Std.Format.text "."
 | .node t₁ x t₂ =>
-  nest 2 (bracket "(" (nest 2 (text s!"{x}" ++ line ++ t₁.toFormat ++ line ++ t₂.toFormat)) ")")
+  bracket "(" (f!"{x}" ++
+   line ++ nest 2 t₁.toFormat ++ line ++ nest 2 t₂.toFormat) ")"
 
 instance [ToString a] : Repr (Tree a) where
  reprPrec e _ := Tree.toFormat e
@@ -248,7 +249,8 @@ open Std.Format in
 def Tree.toFormat [ToString α] : (t : Tree α) → Std.Format
 | .null => Std.Format.text "."
 | .node _ t₁ x t₂ =>
-  nest 2 (bracket "(" (nest 2 (text s!"{x}" ++ line ++ t₁.toFormat ++ line ++ t₂.toFormat)) ")")
+  bracket "(" (f!"{x}" ++
+   line ++ nest 2 t₁.toFormat ++ line ++ nest 2 t₂.toFormat) ")"
 
 instance [ToString a] : Repr (Tree a) where
  reprPrec e _ := Tree.toFormat e
