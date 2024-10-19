@@ -3,11 +3,10 @@ import Fad.Chapter4
 namespace Chapter4
 
 /- 4.2
+Answer: We have smallest (a,b) = x such that f x < t ≤ f (x + 1)
 
-smallest (a, b) returns the first x such that f(x) <= t, but f(x+1) > t.
-That is, x is the point where the function f(x) crosses the threshold t.
-
-But t = 1024 so...-/
+But for t = 1024 and f x = x^2 below f x = t and f (x + 1) > t
+-/
 
 #eval D1.smallest (fun x => dbg_trace "fun {x}"; x * x) 1024 (0, 1024)
 #eval (fun x => dbg_trace "fun {x}"; x * x) 32
