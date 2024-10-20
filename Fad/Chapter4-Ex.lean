@@ -56,11 +56,16 @@ example {α : Type} (t : Chapter4.Tree1.Tree α) :
  | null =>
    simp [height, size]
  | node t₁ x t₂ ihl ihr =>
-   dsimp [height, size]
+   simp [height, size]
    sorry
  }
  {
-  sorry
+  induction t with
+  | null =>
+    simp [height,size]
+  | node t₁ x t₂ ihl ihr =>
+    simp [height, size]
+    sorry
  }
 
 /- 4.17 -/
