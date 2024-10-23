@@ -18,7 +18,7 @@ Como ⌈(n+1)/2⌉ < n, vale a hipotese de indução, então temos que provar qu
 T(n) = ⌈log(⌈(n+1)/2⌉ -1)⌉ + 1 = ⌈log(n-1)⌉.
 
 Podemos mostrar por desigualdade indireta, mostrando que o lado esquerdo é
-menos que k se e somente o lado direito é menor que k, para qualquer k natural.
+menor que k se e somente o lado direito é menor que k, para qualquer k natural.
 Pelo lado direito temos que ⌈log(n-1)⌉ <= k <=> n-1 <= 2^k.
 Pelo lado esquerdo:
 
@@ -30,7 +30,7 @@ Pelo lado esquerdo:
                                  <=> n+1 <= 2^k + 2,
                                  <=> n-1 <= 2^k.
 
-O que completa a prova, uma vez que
+O que completa a prova, uma vez que ambos os lados chegam na mesma proposição.
 -/
 
 end Chapter4
