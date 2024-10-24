@@ -53,16 +53,14 @@ example {α : Type} (t : Chapter4.Tree1.Tree α) :
  apply And.intro
  {
  induction t with
- | null =>
-   simp [height, size]
+ | null => simp [height, size]
  | node t₁ x t₂ ihl ihr =>
    simp [height, size]
    sorry
  }
  {
   induction t with
-  | null =>
-    simp [height,size]
+  | null => simp [height,size]
   | node t₁ x t₂ ihl ihr =>
     simp [height, size]
     sorry
