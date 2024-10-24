@@ -1,7 +1,8 @@
 import Fad.Chapter4
-import Fad.Chapter3
 
 namespace Chapter4
+
+namespace Tree1
 
 /- complete here -/
 def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
@@ -25,23 +26,20 @@ def partition3_geral {α : Type} (y : α) (xs : List α) : (List α × List α �
 
 Quando utilizo o geral, não estou conseguindo utilizar "<" ou "="
 -/
+#eval Tree1.mkTree [1,2,3,5]
 
-#eval Chapter3.Tree.mk (Chapter3.Tree.mk (Chapter3.Tree.leaf 'a') (Chapter3.Tree.leaf 'b')) (Chapter3.Tree.mk (Chapter3.Tree.leaf 'c') (Chapter3.Tree.leaf 'd'))
-/-
-  Tentei utilizar a estrutura de árvore usada no capítulo 3,
-  mas pelo que entendi está estrutura não será suficiente
-  para implementar a função
--/
-
-def mktree:  List Nat →  Chapter3.Tree (List Nat)
-| [] => Null -- retorna a que não tem folha
+partial def mkTreeMulti:  List Nat → Tree (List Nat)
+| [] => Tree.null -- retorna a que não tem folha
 | (x :: xs) =>
   let (us,vs,ws) := partition3 x xs
-  Node (mktree us) vs (mktree ws)
+  Tree.node (mkTreeMulti us) vs (mkTreeMulti ws)
   /-
     retorna a árvore em que um falor pode ser uma lista dos
     valores, em que pode ter um ou mais valores iguais
   -/
 
+#eval Tree1.mkTreeMulti [3,1,1,2,3,5]
+
+end Tree1
 
 end Chapter4
