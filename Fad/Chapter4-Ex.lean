@@ -12,6 +12,7 @@ But for t = 1024 and f x = x^2 below f x = t and f (x + 1) > t
 #eval (fun x => dbg_trace "fun {x}"; x * x) 32
 #eval (fun x => dbg_trace "fun {x}"; x * x) 33
 
+/- 4.4 : see the book -/
 
 /- 4.6 -/
 
@@ -105,7 +106,7 @@ def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
 
 #eval partition3 3 [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
 
-partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
+def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 | [] => Tree1.Tree.null
 | (x :: xs) =>
    match h : partition3 x (x :: xs) with
