@@ -67,9 +67,9 @@ example {α : Type} (t : Chapter4.Tree1.Tree α) :
     sorry
  }
 
-open Chapter4.Tree1.Tree in
+open Chapter4.Tree1 in
 
-example {α : Type} (t : Chapter4.Tree1.Tree α) :
+example {α : Type} (t : Tree α) :
   t.height ≤ t.size ∧ t.size < 2 ^ t.height := by
  induction t with n t₁ t₂ ih_t₁ ih_t₂
   case leaf n =>
@@ -106,12 +106,13 @@ def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
 
 #eval partition3 3 [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
 
-def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
+partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 | [] => Tree1.Tree.null
 | (x :: xs) =>
-   match h : partition3 x (x :: xs) with
+   match partition3 x (x :: xs) with
    | (us, vs, ws) => Tree1.Tree.node (mkTree₁ us) vs (mkTree₁ ws)
 
+#eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
 /- 4.17 -/
 
