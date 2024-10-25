@@ -41,21 +41,18 @@ example :
  rfl
 
 
-def iterate : Nat → (a → a) → a → a
- | 0, _, x => x
- | Nat.succ n, f, x => iterate n f (f x)
+/- primeiro argumento evita lista infinita -/
+def iterate : Nat → (a → a) → a → List a
+ | 0, _, x => [x]
+ | Nat.succ n, f, x => x :: iterate n f (f x)
 
-def bits (n : Nat) : List Bool :=
+def bits (n : Nat) : List (List Bool) :=
   iterate n inc []
  where
    inc : List Bool → List Bool
    | [] => [true]
    | (false :: bs) => true :: bs
    | (true :: bs) => false :: inc bs
-
-#eval List.foldr
- (fun b s => if b then "1" ++ s else "0" ++ s) ""
- $ List.reverse $ bits 345
 
 
 partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
