@@ -7,9 +7,8 @@ open List (reverse tail cons)
 
 def _root_.List.single (xs : List α) : Bool := xs.length = 1
 
-def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
- (xs.take n, xs.drop n)
-
+-- def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
+--  (xs.take n, xs.drop n)
 
 /- motivação: algumas operações em listas encadeadas tem custo linear
    e outras constante. -/
@@ -98,10 +97,21 @@ structure SymList (α : Type) where
  def P (sl : SymList a) : Prop :=
  sl.1.length > sl.2.length
 
+def sl_ex₁ := { lhs := [1], rhs := [4,5,6], ok := (by simp) : SymList Nat }
+def sl_ex₂ := { lhs := [1,2,3,4], rhs := [5,6,7], ok := (by simp) : SymList Nat}
+#eval (sl_ex₁.1.length > sl_ex₁.2.length) -- False
+#eval (sl_ex₂.1.length > sl_ex₂.2.length) -- True
+
+-- Not always true that lhs.length > rhs.length given our SymList definition
 example : ∀ sl : SymList Nat, P sl := by
   intro sl
   cases sl with
   | mk as bs h => sorry
+
+-- Counter-Example
+example : ∃ sl : SymList Nat, ¬P sl := by
+  exists SymList.mk [1, 2] [3, 4, 5] (by simp)
+  simp [P]
 
 #eval SymList.mk [1,2,3] [4,5,6] (by simp)
 #eval { lhs := [], rhs := [6], ok := (by simp) : SymList Nat }
@@ -123,39 +133,189 @@ def toSL : List a → SymList a
  | [] => nilSL
  | x :: xs => consSL x (toSL xs)
 
-example (us vs : List Nat)
- : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
+def headSL : SymList a → Option a
+ | SymList.mk []     []     _ => none
+ | SymList.mk []     (y::_) _ => some y
+ | SymList.mk (x::_) _      _ => some x
+
+def lastSL : SymList a → Option a
+| SymList.mk xs ys _ => if ys.isEmpty then xs.head? else ys.head?
+
+def nullSL (sl : SymList a) : Bool :=
+  sl.lhs.isEmpty ∧ sl.rhs.isEmpty
+
+def singleSL (sl : SymList a): Bool :=
+  (List.single sl.lhs ∧ sl.rhs.isEmpty) ∨
+  (List.single sl.rhs ∧ sl.lhs.isEmpty)
+
+def lengthSL (sl : SymList a) : Nat :=
+  sl.lhs.length + sl.rhs.length
+
+-- FIXME: Finish definitions; proof is missing for
+-- cases 3 and 4 for both tailSL and initSL.
+set_option trace.Meta.Tactic.simp.rewrite true in
+def tailSL (xs : SymList a) : Option (SymList a) :=
+  match xs.lhs, xs.rhs with
+  | []   , [] => none
+  | []   , _  => some nilSL
+  | xs'::[], ys'  =>
+    let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
+    some (SymList.mk (reverse vs) us (by
+        simp
+        cases vs with
+        | nil =>
+          cases us with
+          | nil => simp
+          | cons _ us' =>
+            simp
+            cases us' with
+            | nil => simp
+            | cons _ _ => sorry
+        | cons _ vs' =>
+          cases us with
+          | nil =>
+            simp
+            cases vs' with
+            | nil => simp
+            | cons _ _ => sorry
+          | cons _ _ =>
+            simp
+        ))
+  | xs'  , ys'  => some (SymList.mk (tail xs') ys' (by
+    simp
+    cases xs' with
+    | nil =>
+      cases ys' with
+      | nil => simp
+      | cons _ ys'' => sorry
+    | cons _ _ =>
+      cases ys' with
+      | nil => sorry
+      | cons _ _ => sorry
+  ))
 
 set_option trace.Meta.Tactic.simp.rewrite true in
-example : cons x ∘ fromSL = fromSL ∘ consSL x := by
-  funext s
-  cases s with
-  | mk as bs ok =>
-    simp [fromSL]
-    cases bs with
-    | nil => -- empty rhs
-      have h := ok.2 -- rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1
-      specialize h rfl
-      cases h with
-      | inl lhs_empty => -- lhs is empty
-        have as_empty : as = [] := by
-          cases as with
-          | nil => rfl
-          | cons _ _ => contradiction
-        subst as_empty
-        rfl
-      | inr lhs_single => -- lhs is single
-        cases as with
-        | nil => contradiction
-        | cons a as' =>
-          cases as' with
-          | nil =>
-            rfl
-          | cons b bs' =>
-            have h_len : (a :: b :: bs').length = 1 := lhs_single
-            simp at h_len
-    | cons b bs => -- non-empty rhs
-      simp [consSL, fromSL]
+def initSL (xs : SymList a) : Option (SymList a) :=
+  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
+  match xs.lhs, xs.rhs with
+  | [],      [] => none
+  | _ ,      [] => some nilSL
+  | _ , _ :: [] => some (SymList.mk us (reverse vs) (by
+    simp
+    match us, vs with
+    | []    , []     => simp
+    | []    , _::[]  => simp
+    | _::[] , []     => simp
+    | []    , _      => sorry -- This case is impossible
+    | _     , []     => sorry -- This case is impossible
+    | _::_  , _::_   => simp
+  ))
+  | _ , _       => some (SymList.mk xs.lhs (tail xs.rhs) (by
+    simp
+    match xs.lhs, xs.rhs with
+    | []     , []      => simp
+    | []     , _::[]   => simp
+    | _::[]  , []      => simp
+    | []     , _       => sorry -- This case is impossible
+    | _      , []      => sorry -- This case is impossible
+    | l::lhs', r::rhs' => sorry
+  ))
+
+-- Alternate definition for tailSL and initSL
+-- They feel wrong, but I couldn't prove the ones above.
+/-def tailSL (xs : SymList a) : Option (SymList a) :=
+  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
+  match xs.lhs, xs.rhs with
+  | []   , [] => none
+  | []   , _  => some nilSL
+  | _::[], _  => some (toSL (reverse vs ++ us))
+  | _    , _  => some (toSL (tail xs.lhs ++ xs.rhs))
+
+def initSL (xs : SymList a) : Option (SymList a) :=
+  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
+  match xs.lhs, xs.rhs with
+  | [],      [] => none
+  | _ ,      [] => some nilSL
+  | _ , _ :: [] => some (toSL (us ++ reverse vs))
+  | _ , _       => some (toSL (xs.lhs ++ tail xs.rhs))-/
+
+-- FIXME: Termination proof is missing;
+-- might not need i if we finish the proofs for the original tailSL
+def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
+  match sl with
+  | SymList.mk [] [] _ => nilSL
+  | SymList.mk xs ys _ =>
+    match headSL sl with
+    | none => nilSL
+    | some hsl =>
+      if p hsl then
+        match tailSL sl with
+        | none     => nilSL
+        | some tsl => dropWhileSL p tsl
+      else sl
+ /-termination_by
+  lengthSL sl
+ decreasing_by -- We need to show that tsl.lhs.length + tsl.rhs.length < xs.length + ys.length
+  simp [lengthSL, tailSL]
+  sorry
+  cases tsl.lhs with
+  | nil =>
+    simp [tailSL]
+    cases tsl.rhs with
+    | nil =>
+      simp
+
+      sorry
+    | cons _ _ =>
+      simp
+      sorry
+  | cons _ _ =>
+    simp [tailSL]
+    cases tsl.rhs with
+    | nil =>
+      simp
+      sorry
+    | cons _ _ =>
+      simp
+      sorry-/
+
+-- FIXME: Termination proof is missing;
+-- might not need it if we finish the proofs for the original initSL
+def initsSL (sl : SymList a) : SymList (SymList a) :=
+  if   nullSL sl
+  then snocSL sl nilSL
+  else
+    match initSL sl with
+    | none     => nilSL
+    | some isl => snocSL sl (initsSL isl)
+ /-termination_by
+    lengthSL sl
+ decreasing_by -- We need to show that isl.lhs.length + isl.rhs.length < xs.length + ys.length
+  simp [lengthSL, initSL]
+  sorry
+  cases isl.lhs with
+  | nil =>
+    simp [tailSL]
+    cases isl.rhs with
+    | nil =>
+      simp
+      sorry
+    | cons _ _ =>
+      simp
+      sorry
+  | cons _ _ =>
+    simp [tailSL]
+    cases isl.rhs with
+    | nil =>
+      simp
+      sorry
+    | cons _ _ =>
+      simp
+      sorry-/
+
+
+example (us vs : List Nat)
+ : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
 
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
@@ -173,7 +333,7 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
      | nil => simp
      | cons z zs _ =>
        simp at h1
-       rw [h1]; simp [List.reverse]
+       rw [h1]; simp
    | cons z zs _ => simp [consSL, fromSL]
 
 
@@ -205,6 +365,10 @@ instance [ToString α] : ToString (Tree α) where
 def Tree.size : Tree a → Nat
  | leaf _ => 1
  | node n _ _ => n
+
+def Tree.height : Tree α → Nat
+ | leaf _ => 1
+ | node _ t₁ t₂ => 1 + max t₁.height t₂.height
 
 def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
  node (t₁.size + t₂.size) t₁ t₂
@@ -257,28 +421,35 @@ def fromRA : RAList a → List a :=
 
 
 def fetchT [ToString a] (n : Nat) (t : Tree a) : Option a :=
- dbg_trace "fetchT {n} {t.toString}"
  match n, t with
- | 0, leaf x => some x
+ | 0, leaf x => x
  | k, (node n t₁ t₂) =>
    let m := n / 2
-   if k < m
-   then fetchT k t₁ else fetchT (k - m) t₂
+   if k < m then fetchT k t₁ else fetchT (k - m) t₂
  | _, leaf _ => none
 
 def fetchRA [ToString a] (n : Nat) (ra : RAList a) : Option a :=
- dbg_trace "fetchRA {n} {ra.toString}"
  match n, ra with
  | _, [] => none
  | k, (zero :: xs) => fetchRA k xs
  | k, (one t :: xs) =>
    if k < size t then fetchT k t else fetchRA (k - size t) xs
 
-#eval fetchRA 2 [zero,
+#eval fetchRA 10 [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]
 
+
+def nilRA {a : Type} : RAList a := []
+
+def consRA (x : a) (xs : RAList a) : RAList a :=
+ consT (Tree.leaf x) xs
+where
+ consT : Tree a → RAList a → RAList a
+ | t1, [] => [Digit.one t1]
+ | t1, Digit.zero :: xs => Digit.one t1 :: xs
+ | t1, Digit.one t2 :: xs => Digit.zero :: consT (Tree.mk t1 t2) xs
 
 -- 3.3 Arrays
 

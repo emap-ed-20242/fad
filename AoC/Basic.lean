@@ -1,0 +1,7 @@
+
+namespace AoC
+
+
+
+
+end AoC
