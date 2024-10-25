@@ -114,6 +114,21 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
+
+/- 4.16 -/
+
+namespace Tree2
+
+def balanceL (t₁ : Tree a) (x : a) (t₂ : Tree a) : Tree a :=
+ match t₂ with
+ | Tree.null => Tree.null
+ | Tree.node _ l y r =>
+   if l.height ≥ t₁.height + 2
+   then balance (balanceL t₁ x l) y r
+   else balance (node t₁ x l) y r
+
+end Tree2
+
 /- 4.17 -/
 
 section
