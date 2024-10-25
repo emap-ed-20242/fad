@@ -5,20 +5,6 @@ import Lean.Data.AssocList
 namespace Chapter3
 open SL1
 
-/-
-| 3.12 | Anderson Gabriel Falcão dos Santos     |
-|  3.4 | Breno Russo Guedes de Souza Melo       | not
-| 3.10 | Henrique Coelho Beltrão                |
-|  3.9 | Jaime Willian Carneiro da Silva        |
-|  3.3 | Kauan Kevem Sousa Farias               | not
-| 3.14 | Leonardo Micheli Belo                  |
-|  3.8 | Luís Filipe Novaes de Souza            |
-| 3.15 | Nícolas Mateus Spaniol                 |
-| 3.11 | Pablo Andrade Carvalho Barros          |
-|  3.6 | Thiago Franke Melchiors                | not
-| 3.13 | Wellington José Leite da Silva         |
--/
-
 -- 3.1
 
 /-
@@ -84,7 +70,7 @@ def dropWhileSL' (p : α → Bool) (sl : SymList α) : SymList α :=
 
 -- 3.6
 
-def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
+partial def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
  if nullSL xs then
   snocSL xs nilSL
  else
@@ -101,9 +87,130 @@ def inits {α : Type} (xs : List α) : List (List α) :=
 #eval inits [1,2,3,4]
 
 
--- 3.8
+/- 3.8 - discussão sobre complexidade no Livro. Código sugerido abaixo. -/
+
+def measure (ts : List (Tree a)) : Nat :=
+  ts.foldr (λ t acc => size t + acc) 0
+ where
+  size : Tree a → Nat
+  | Tree.leaf _       => 1
+  | Tree.node _ t1 t2 => 1 + size t1 + size t2
+
+def fromTs : List (Tree a) → List a
+| [] => []
+| (Tree.leaf x) :: ts =>
+  have : measure ts < measure (Tree.leaf x :: ts) := by
+   simp [measure,measure.size]
+  x :: fromTs ts
+| (Tree.node n t1 t2) :: ts =>
+  have : measure (t1 :: t2 :: ts) < measure (Tree.node n t1 t2 :: ts) := by
+   simp [measure, measure.size]
+   rw [Nat.add_assoc]; simp
+  fromTs (t1 :: t2 :: ts)
+termination_by x1 => measure x1
+
+open Tree in
+#eval fromTs [mk (mk (leaf 'a') (leaf 'b')) (mk (leaf 'c') (leaf 'd'))]
+
+-- 3.10
+
+def toRA {a : Type} : List a → RAList a :=
+  List.foldr consRA nilRA
+
+#eval fromRA <| toRA [1,2,3,4,5]
+
+example : ∀ (xs : List a), xs = fromRA (toRA xs) := by
+  intro xs
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    simp [toRA, fromRA, consRA]
+    rw [ih]
+    match toRA xs with
+    | [] => rfl
+    | (Digit.zero :: ds) =>
+      simp [fromRA, fromT, Tree.mk]
+      rw [concatMap]
+      sorry
+    | (Digit.one t :: ds) =>
+      simp [fromRA, fromT, Tree.mk]
+      rw [concatMap]
+      sorry
+
+-- 3.11
+
+def updateT : Nat → α → Tree α → Tree α
+| 0, x, Tree.leaf _ => Tree.leaf x
+| _, _, Tree.leaf y => Tree.leaf y -- problem
+| k, x, Tree.node n t1 t2 =>
+  let m := n / 2
+  if k < m then
+   Tree.node n (updateT k x t1) t2
+  else
+   Tree.node n t1 (updateT (k - m) x t2)
+
+def updateRA : Nat → α → RAList α → RAList α
+| _, _, [] => []
+| k, x, Digit.zero :: xs => Digit.zero :: (updateRA k x xs)
+| k, x, (Digit.one t) :: xs =>
+  if k < t.size then
+    (Digit.one $ updateT k x t) :: xs
+  else
+    (Digit.one t) :: (updateRA (k- t.size) x xs)
+
+#eval fromRA <| updateRA 2 10 (toRA [1,2,3,4,5])
 
 
+-- 3.12
+
+def uncurry : (a → b → c) → (a × b) → c
+| f, (x, y) => f x y
+
+def updatesRA : RAList α → List (Nat × α) → RAList α
+  | r, up => List.foldl (flip (uncurry updateRA)) r up
+
+infix: 60 " // " => updatesRA
+
+#eval fromRA <| (toRA ['a','b','c']) // [(2, 'x'), (0, 'y')]
+
+
+-- 3.13
+
+def unconsT : RAList a → Option (Tree a × RAList a)
+| [] => none
+| Digit.one t :: xs =>
+  if xs.isEmpty then
+   some (t, [])
+  else
+   some (t, Digit.zero :: xs)
+| Digit.zero :: xs =>
+  match unconsT xs with
+  | none => none
+  | some (Tree.leaf _, _) => none
+  | some (Tree.node _ t1 t2, ys) => some (t1, Digit.one t2 :: ys)
+
+def unconsRA (xs : RAList a) : Option (a × RAList a) :=
+ match unconsT xs with
+ | some (Tree.leaf x, ys) => some (x, ys)
+ | some (Tree.node _ _ _, _) => none
+ | none => none
+
+#eval unconsT <| toRA ([] : List Nat)
+
+#eval do
+ let a ← unconsRA <| toRA [1,2,3]
+ pure (a.1, fromRA a.2)
+
+#eval (unconsRA <| toRA [1,2,3]) >>= (fun x => pure (x.1, fromRA x.2))
+
+def headRA (xs : RAList a) : Option a :=
+  Prod.fst <$> unconsRA xs
+
+def tailRA (xs : RAList a) : Option (RAList a) :=
+  Prod.snd <$> unconsRA xs
+
+#eval fromRA <$> (tailRA <| toRA [1,2,3])
+#eval headRA <| toRA [1,2,3]
 
 -- 3.14
 
@@ -127,6 +234,8 @@ ghci> listArray (0,5) [0..]
 array (0,5) [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5)]
 ghci> accum (\ a b -> a + b) (listArray (0,5) [0..10]) [(1,10),(2,10)]
 array (0,5) [(0,0),(1,11),(2,12),(3,3),(4,4),(5,5)]
+ghci> accum (\ a b -> a + b) (listArray (0,5) [0..10]) [(1,10),(1,30)]
+array (0,5) [(0,0),(1,41),(2,2),(3,3),(4,4),(5,5)]
 -/
 
 #eval (Fin.mk 3 (by simp) : Fin 4)
@@ -140,8 +249,12 @@ def accum : (e → v → e) → Array e → List (Nat × v) → Array e
    else
     accum f a1 ps
 
-#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10),(2,10)]
+#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10),(3,10)]
 
+def accumArray
+ (f : a → v → a) (e : a) (n : Nat) (is : List (Nat × v)) : Array a :=
+ accum f (Array.mkArray n e) is
 
+#eval accumArray (λ a b => a + b) 5 10 [(1,10),(3,10)]
 
 end Chapter3
