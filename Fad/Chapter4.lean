@@ -172,6 +172,7 @@ namespace Tree1
 inductive Tree (α : Type) : Type
 | null : Tree α
 | node : (Tree α) → α → (Tree α) → Tree α
+deriving Inhabited
 
 open Std.Format in
 
