@@ -2,8 +2,9 @@
 --until p f x = if pxthen x else until p f (f x)
 
 -- Definição de until com recursão
-def until {α : Type} (p : α → bool) (f : α → α) : α → α
-| x => if p x then x else until (f x)
+partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
+  if p x then x
+  else until' p f (f x)
 
 -- Definição de flatten que une listas
 def flatten {α : Type} : list (list α) → list α := list.join
