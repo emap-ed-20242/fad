@@ -9,12 +9,12 @@ namespace Chapter5
   where m = length xs div 2
 -/
 
-inductive Tree (a : Type) : Type
+inductive Tree (a: Type) : Type
 | null : Tree a
 | node : a → (Tree a) → (Tree a) → Tree a
 
 open Std.Format in
-def Tree.toFormat [ToString α] : (t : Tree α) → Std.Format
+def Tree.toFormat [ToString α] : (t: Tree α) → Std.Format
 | .null => Std.Format.text "."
 | .node x t₁ t₂ =>
   bracket "(" (f!"{x}" ++
@@ -30,14 +30,20 @@ def mkPair : Nat → (List a) → (Tree a × List a)
   | n, x :: xs =>
     let m := (n - 1) / 2
     let y := mkPair m xs
-    let z := mkPair (n - 1 - m) y.2
-    (Tree.node x y.1 z.1, z.2)
+    have h1 : sizeOf (mkPair m xs).2 ≤ sizeOf xs := by sorry      
+    let z := mkPair (n - 1 - m) y.snd
+    (Tree.node x y.fst z.fst, z.snd)
 
   termination_by n as => as
-  decreasing_by -- ????????? PSigma.casesOn? instWellFoundedRelationOfSizeOf? invImage?
-    simp [Nat.lt_add_one_iff, sizeOf]
-    all_goals
-    sorry
+  decreasing_by
+    rw [List.cons.sizeOf_spec, Nat.add_comm]
+    simp [Nat.lt_add_one_iff]
+    simp
+    have h2 : sizeOf y.snd < sizeOf (x :: xs) := by
+      simp
+      rw [Nat.add_comm]
+      exact Nat.lt_add_one_of_le h1
+    exact h2
 
 def mkTree (xs : List a) : Tree a := (mkPair xs.length xs).1
 --------------------------------------------------------------
