@@ -183,21 +183,34 @@ def tailSL (as : SymList a) : Option (SymList a) :=
          | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
          | cons b bs =>
            intro h₆; rw [h₆] at h₄; simp at h₄ h₅
-           right; rw [h₅];
-           --rw [Nat.add_assoc] at h₄
-           have h₇ := tailSL_1 bs.length h₄;
-           sorry))
+           right; rw [h₅]; sorry))
        else
         some (SymList.mk xs.tail ys (by
          simp at *
          apply And.intro
          {
           intro h₄; apply ok.1
-          sorry
+          have h₅ : xs = [] ∨ xs.length = 1 := by
+            cases xs with
+            | nil => simp
+            | cons b bs => right; simp ; simp at h₄; exact h₄
+          apply Or.elim h₅
+          { intro h ; exact h }
+          { intro h ; exfalso ; apply h₃ ; exact h }
          }
          {
-          sorry
-         }
+          cases ys with
+          | nil =>
+            simp ; simp at ok; left
+            apply Or.elim ok
+            { intro h ; exact False.elim (h₁ h) }
+            { intro h ; exact False.elim (h₃ h) }
+          | cons b bs =>
+            intro h₄; left;
+            apply Or.elim (ok.2 h₄)
+            { intro h ; exact False.elim (h₁ h) }
+            { intro h ; exact False.elim (h₃ h) }
+         }))
 
 def initSL (xs : SymList a) : Option (SymList a) :=
   let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
