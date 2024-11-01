@@ -7,9 +7,6 @@ open List (reverse tail cons)
 
 def _root_.List.single (xs : List α) : Bool := xs.length = 1
 
--- def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
---  (xs.take n, xs.drop n)
-
 /- motivação: algumas operações em listas encadeadas tem custo linear
    e outras constante. -/
 
@@ -46,7 +43,7 @@ def toSL : List a → SymList a
 def lastSL : SymList a → Option a
 | (xs, ys) => if ys.isEmpty then xs.head? else ys.head?
 
-#eval fromSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
+#eval snocSL 20 (snocSL 10 (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))))
 
 def tailSL (sl : SymList a) : Option (SymList a) :=
  match sl with
@@ -63,7 +60,6 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
  pure $ fromSL a
 
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))) >>= pure ∘ fromSL
-
 
 end SL1
 
@@ -94,27 +90,15 @@ structure SymList (α : Type) where
        (rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1)
  deriving Repr
 
+/- why the ok argument ? -/
+
  def P (sl : SymList a) : Prop :=
  sl.1.length > sl.2.length
 
-def sl_ex₁ := { lhs := [1], rhs := [4,5,6], ok := (by simp) : SymList Nat }
-def sl_ex₂ := { lhs := [1,2,3,4], rhs := [5,6,7], ok := (by simp) : SymList Nat}
-#eval (sl_ex₁.1.length > sl_ex₁.2.length) -- False
-#eval (sl_ex₂.1.length > sl_ex₂.2.length) -- True
-
--- Not always true that lhs.length > rhs.length given our SymList definition
 example : ∀ sl : SymList Nat, P sl := by
   intro sl
   cases sl with
   | mk as bs h => sorry
-
--- Counter-Example
-example : ∃ sl : SymList Nat, ¬P sl := by
-  exists SymList.mk [1, 2] [3, 4, 5] (by simp)
-  simp [P]
-
-#eval SymList.mk [1,2,3] [4,5,6] (by simp)
-#eval { lhs := [], rhs := [6], ok := (by simp) : SymList Nat }
 
 def fromSL (sl : SymList a) : List a :=
  sl.lhs ++ sl.rhs.reverse
@@ -151,50 +135,70 @@ def singleSL (sl : SymList a): Bool :=
 def lengthSL (sl : SymList a) : Nat :=
   sl.lhs.length + sl.rhs.length
 
--- FIXME: Finish definitions; proof is missing for
--- cases 3 and 4 for both tailSL and initSL.
-set_option trace.Meta.Tactic.simp.rewrite true in
-def tailSL (xs : SymList a) : Option (SymList a) :=
-  match xs.lhs, xs.rhs with
-  | []   , [] => none
-  | []   , _  => some nilSL
-  | xs'::[], ys'  =>
-    let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
-    some (SymList.mk (reverse vs) us (by
-        simp
-        cases vs with
-        | nil =>
-          cases us with
-          | nil => simp
-          | cons _ us' =>
-            simp
-            cases us' with
-            | nil => simp
-            | cons _ _ => sorry
-        | cons _ vs' =>
-          cases us with
-          | nil =>
-            simp
-            cases vs' with
-            | nil => simp
-            | cons _ _ => sorry
-          | cons _ _ =>
-            simp
-        ))
-  | xs'  , ys'  => some (SymList.mk (tail xs') ys' (by
-    simp
-    cases xs' with
-    | nil =>
-      cases ys' with
-      | nil => simp
-      | cons _ ys'' => sorry
-    | cons _ _ =>
-      cases ys' with
-      | nil => sorry
-      | cons _ _ => sorry
-  ))
 
-set_option trace.Meta.Tactic.simp.rewrite true in
+/- subtipos -/
+def p (h : List Nat) : Prop := h.length = 3
+
+def test₁ := (@Subtype.mk _ p [1,2,3] (by simp [p]))
+def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
+
+#check p [1,2,3]
+#eval test₁.val
+#check test₁.property
+#check List.splitInTwo test₁
+#check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
+
+
+theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
+  cases a with
+  | zero => rfl
+  | succ b =>
+    rw [Nat.add_assoc] at h
+    have h3 : b + 2 < 2 := by simp at h
+    have h2 := Nat.div_eq_of_lt h3
+    simp at h2
+
+def tailSL (as : SymList a) : Option (SymList a) :=
+  match as with
+  | ⟨xs, ys, ok⟩ =>
+   if h₁ : xs.isEmpty
+   then if h₂ : ys.isEmpty
+        then none
+        else some nilSL
+   else if h₃ : xs.length = 1
+       then
+        let p := List.splitInTwo (Subtype.mk ys (by rfl))
+        some (SymList.mk p.2.val.reverse p.1 (by
+         simp at *
+         have h₄ := p.1.property
+         have h₅ := p.2.property
+         apply And.intro
+         . cases ys with
+         | nil => simp at h₅; simp [h₅]; left; assumption
+         | cons b bs =>
+           intro h₆; rw [h₆] at h₅; simp at h₄ h₅
+           right; rw [h₄]
+           have h₇ := tailSL_1 bs.length h₅; rw [h₇]
+         . cases ys with
+         | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
+         | cons b bs =>
+           intro h₆; rw [h₆] at h₄; simp at h₄ h₅
+           right; rw [h₅];
+           --rw [Nat.add_assoc] at h₄
+           have h₇ := tailSL_1 bs.length h₄;
+           sorry))
+       else
+        some (SymList.mk xs.tail ys (by
+         simp at *
+         apply And.intro
+         {
+          intro h₄; apply ok.1
+          sorry
+         }
+         {
+          sorry
+         }
+
 def initSL (xs : SymList a) : Option (SymList a) :=
   let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
   match xs.lhs, xs.rhs with
