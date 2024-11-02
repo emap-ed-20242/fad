@@ -149,6 +149,7 @@ def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
 #check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
 
 
+/- can this proof be clear? We ended up not using it anyway. -/
 theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
   cases a with
   | zero => rfl
@@ -162,7 +163,7 @@ def tailSL (as : SymList a) : Option (SymList a) :=
   match as with
   | ⟨xs, ys, ok⟩ =>
    if h₁ : xs.isEmpty
-   then if h₂ : ys.isEmpty
+   then if ys.isEmpty
         then none
         else some nilSL
    else if h₃ : xs.length = 1
@@ -177,13 +178,12 @@ def tailSL (as : SymList a) : Option (SymList a) :=
          | nil => simp at h₅; simp [h₅]; left; assumption
          | cons b bs =>
            intro h₆; rw [h₆] at h₅; simp at h₄ h₅
-           right; rw [h₄]
-           have h₇ := tailSL_1 bs.length h₅; rw [h₇]
+           right; rw [h₄]; omega -- no need of tailSL_1
          . cases ys with
          | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
          | cons b bs =>
            intro h₆; rw [h₆] at h₄; simp at h₄ h₅
-           right; rw [h₅]; sorry))
+           right; rw [h₅]; omega))
        else
         some (SymList.mk xs.tail ys (by
          simp at *
@@ -211,6 +211,8 @@ def tailSL (as : SymList a) : Option (SymList a) :=
             { intro h ; exact False.elim (h₁ h) }
             { intro h ; exact False.elim (h₃ h) }
          }))
+
+#eval tailSL (toSL $ List.iota 20)
 
 def initSL (xs : SymList a) : Option (SymList a) :=
   let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
