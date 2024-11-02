@@ -162,7 +162,7 @@ def tailSL (as : SymList a) : Option (SymList a) :=
   match as with
   | ⟨xs, ys, ok⟩ =>
    if h₁ : xs.isEmpty
-   then if h₂ : ys.isEmpty
+   then if ys.isEmpty
         then none
         else some nilSL
    else if h₃ : xs.length = 1
@@ -183,7 +183,8 @@ def tailSL (as : SymList a) : Option (SymList a) :=
          | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
          | cons b bs =>
            intro h₆; rw [h₆] at h₄; simp at h₄ h₅
-           right; rw [h₅]; sorry))
+           right; rw [h₅]; omega
+          ))
        else
         some (SymList.mk xs.tail ys (by
          simp at *
@@ -211,6 +212,12 @@ def tailSL (as : SymList a) : Option (SymList a) :=
             { intro h ; exact False.elim (h₁ h) }
             { intro h ; exact False.elim (h₃ h) }
          }))
+
+#eval tailSL (SymList.mk [1, 2, 3] [6, 5, 4] (by decide))
+#eval fromSL (SymList.mk [1, 2, 3] [6, 5, 4] (by decide))
+#eval tailSL (SymList.mk [1] [6, 5, 4] (by decide))
+#eval tailSL (SymList.mk [] [1] (by decide))
+#eval tailSL (SymList.mk [1] [] (by decide))
 
 def initSL (xs : SymList a) : Option (SymList a) :=
   let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
