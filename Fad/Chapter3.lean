@@ -159,58 +159,61 @@ theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
     have h2 := Nat.div_eq_of_lt h3
     simp at h2
 
+
 def tailSL (as : SymList a) : Option (SymList a) :=
   match as with
   | ⟨xs, ys, ok⟩ =>
    if h₁ : xs.isEmpty
-   then if ys.isEmpty
-        then none
-        else some nilSL
-   else if h₃ : xs.length = 1
-       then
-        let p := List.splitInTwo (Subtype.mk ys (by rfl))
-        some (SymList.mk p.2.val.reverse p.1 (by
-         simp at *
-         have h₄ := p.1.property
-         have h₅ := p.2.property
-         apply And.intro
-         . cases ys with
+   then
+     if ys.isEmpty
+     then none
+     else some nilSL
+   else
+     if h₃ : xs.length = 1
+     then
+       let p := List.splitInTwo (Subtype.mk ys (by rfl))
+       some (SymList.mk p.2.val.reverse p.1 (by
+       simp at *
+       have h₄ := p.1.property
+       have h₅ := p.2.property
+       apply And.intro
+       . cases ys with
          | nil => simp at h₅; simp [h₅]; left; assumption
          | cons b bs =>
            intro h₆; rw [h₆] at h₅; simp at h₄ h₅
            right; rw [h₄]; omega -- no need of tailSL_1
-         . cases ys with
+       . cases ys with
          | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
          | cons b bs =>
            intro h₆; rw [h₆] at h₄; simp at h₄ h₅
            right; rw [h₅]; omega))
-       else
-        some (SymList.mk xs.tail ys (by
-         simp at *
-         apply And.intro
-         {
-          intro h₄; apply ok.1
-          have h₅ : xs = [] ∨ xs.length = 1 := by
-            cases xs with
-            | nil => simp
-            | cons b bs => right; simp ; simp at h₄; exact h₄
-          apply Or.elim h₅
-          { intro h ; exact h }
-          { intro h ; exfalso ; apply h₃ ; exact h }
-         }
-         {
-          cases ys with
-          | nil =>
-            simp ; simp at ok; left
-            apply Or.elim ok
-            { intro h ; exact False.elim (h₁ h) }
-            { intro h ; exact False.elim (h₃ h) }
-          | cons b bs =>
-            intro h₄; left;
-            apply Or.elim (ok.2 h₄)
-            { intro h ; exact False.elim (h₁ h) }
-            { intro h ; exact False.elim (h₃ h) }
-         }))
+     else
+       some (SymList.mk xs.tail ys (by
+       simp at *
+       apply And.intro
+       {
+        intro h₄; apply ok.1
+        have h₅ : xs = [] ∨ xs.length = 1 := by
+         cases xs with
+         | nil => simp
+         | cons b bs => right; simp ; simp at h₄; exact h₄
+        apply Or.elim h₅
+        { intro h ; exact h }
+        { intro h ; exfalso ; apply h₃ ; exact h }
+       }
+       {
+        cases ys with
+        | nil =>
+          simp ; simp at ok; left
+          apply Or.elim ok
+          { intro h ; exact False.elim (h₁ h) }
+          { intro h ; exact False.elim (h₃ h) }
+        | cons b bs =>
+          intro h₄; left;
+          apply Or.elim (ok.2 h₄)
+          { intro h ; exact False.elim (h₁ h) }
+          { intro h ; exact False.elim (h₃ h) }
+       }))
 
 #eval tailSL (toSL $ List.iota 20)
 
