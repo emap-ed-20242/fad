@@ -89,26 +89,42 @@ def halve₁ : (xs : List a) → (List a × List a) :=
  List.foldr op ([],[])
 
 #eval halve₁ [1,2,3,4,5,6,7,8,9,10]
+#eval halve₁ ([] : List Nat)
 
--- can we prove this function is total?
-partial def mkTree : (xs : List a) → Tree a
+theorem halve_length_le_length : (halve₁ (x :: xs)).1.length ≤ xs.length := by
+induction xs with
+| nil => exact List.getElem?_eq_none_iff.mp rfl
+| cons x xs ih =>
+ unfold halve₁
+ unfold halve₁ at ih
+ rw [List.foldr]
+ rw [List.foldr] at ih
+
+def mkTree : (xs : List a) → Tree a
  | []  => Tree.null
  | [a] => Tree.leaf a
  | x::xs  =>
    let p := halve₁ (x::xs)
    Tree.node (mkTree p.1) (mkTree p.2)
 
+   termination_by as => as.length
+   decreasing_by
+    simp [Nat.lt_succ_iff]
+    exact halve_length_le_length
+
 def msort₀ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
  (xs : List a) : List a :=
  (flatten ∘ mkTree) xs
 
-partial def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
+def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
  : List a → List a
  | []  => []
  | [x] => [x]
  | xs  =>
     let p := halve₁ xs
     merge (msort₁ p.1) (msort₁ p.2)
+    termination_by as => as.length
+    decreasing_by
 
 #eval msort₁ [1,2,3,4,5]
 #eval msort₁ ['a','b','a']
