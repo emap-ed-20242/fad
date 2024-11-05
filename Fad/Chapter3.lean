@@ -169,9 +169,9 @@ def tailSL (as : SymList a) : Option (SymList a) :=
   | ⟨xs, ys, ok⟩ =>
    if h₁ : xs.isEmpty
    then
-     if ys.isEmpty
-     then none
-     else some nilSL
+    match ys with
+    | [] => none
+    | _  => some nilSL
    else
      if h₃ : xs.length = 1
      then
@@ -225,8 +225,9 @@ def tailSL (as : SymList a) : Option (SymList a) :=
 def initSL : (sl : SymList α) → Option (SymList α)
  | ⟨xs, ys, ok⟩ =>
    if h₁ : ys.isEmpty then
-    if xs.isEmpty then none
-    else some nilSL
+    match xs with
+    | [] => none
+    | _  => some nilSL
    else
     if h₂ : ys.length = 1 then
       let p := List.splitInTwo (Subtype.mk xs (by rfl))
