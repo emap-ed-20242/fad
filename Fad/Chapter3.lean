@@ -83,7 +83,6 @@ def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 
 namespace SL2
 
-
 structure SymList (α : Type) where
   lhs : List α
   rhs : List α
@@ -91,23 +90,14 @@ structure SymList (α : Type) where
        (rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1)
  deriving Repr
 
+def nilSL : SymList a := SymList.mk [] [] (by simp)
+
 instance : Inhabited (SymList α) where
-  default := ⟨[], [], by all_goals simp⟩
+  default := nilSL
 
-/- why the ok argument ? -/
-
- def P (sl : SymList a) : Prop :=
- sl.1.length > sl.2.length
-
-example : ∀ sl : SymList Nat, P sl := by
-  intro sl
-  cases sl with
-  | mk as bs h => sorry
 
 def fromSL (sl : SymList a) : List a :=
  sl.lhs ++ sl.rhs.reverse
-
-def nilSL : SymList a := SymList.mk [] [] (by simp)
 
 def snocSL : a → SymList a → SymList a
 | z, SymList.mk [] bs _ => SymList.mk bs [z] (by simp)
@@ -122,9 +112,9 @@ def toSL : List a → SymList a
  | x :: xs => consSL x (toSL xs)
 
 def headSL : SymList a → Option a
- | SymList.mk []     []     _ => none
- | SymList.mk []     (y::_) _ => some y
- | SymList.mk (x::_) _      _ => some x
+ | ⟨[], [], _⟩     => none
+ | ⟨[], y :: _, _⟩ => some y
+ | ⟨x::_, _, _⟩    => some x
 
 def lastSL : SymList a → Option a
 | SymList.mk xs ys _ => if ys.isEmpty then xs.head? else ys.head?
@@ -153,7 +143,7 @@ def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
 #check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
 
 
-/- can this proof be clear? We ended up not using it anyway. -/
+/- can this proof be clear? omega! -/
 theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
   cases a with
   | zero => rfl
