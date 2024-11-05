@@ -83,12 +83,16 @@ def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 
 namespace SL2
 
+
 structure SymList (α : Type) where
   lhs : List α
   rhs : List α
   ok : (lhs.isEmpty → rhs.isEmpty ∨ rhs.length = 1) ∧
        (rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1)
  deriving Repr
+
+instance : Inhabited (SymList α) where
+  default := ⟨[], [], by all_goals simp⟩
 
 /- why the ok argument ? -/
 
@@ -215,58 +219,35 @@ def tailSL (as : SymList a) : Option (SymList a) :=
           { intro h ; exact False.elim (h₃ h) }
        }))
 
-#eval tailSL (toSL $ List.iota 20)
+#eval tailSL (toSL $ List.iota 10)
 
-def initSL (xs : SymList a) : Option (SymList a) :=
-  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
-  match xs.lhs, xs.rhs with
-  | [],      [] => none
-  | _ ,      [] => some nilSL
-  | _ , _ :: [] => some (SymList.mk us (reverse vs) (by
-    simp
-    match us, vs with
-    | []    , []     => simp
-    | []    , _::[]  => simp
-    | _::[] , []     => simp
-    | []    , _      => sorry -- This case is impossible
-    | _     , []     => sorry -- This case is impossible
-    | _::_  , _::_   => simp
-  ))
-  | _ , _       => some (SymList.mk xs.lhs (tail xs.rhs) (by
-    simp
-    match xs.lhs, xs.rhs with
-    | []     , []      => simp
-    | []     , _::[]   => simp
-    | _::[]  , []      => simp
-    | []     , _       => sorry -- This case is impossible
-    | _      , []      => sorry -- This case is impossible
-    | l::lhs', r::rhs' => sorry
-  ))
 
--- Alternate definition for tailSL and initSL
--- They feel wrong, but I couldn't prove the ones above.
-/-def tailSL (xs : SymList a) : Option (SymList a) :=
-  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
-  match xs.lhs, xs.rhs with
-  | []   , [] => none
-  | []   , _  => some nilSL
-  | _::[], _  => some (toSL (reverse vs ++ us))
-  | _    , _  => some (toSL (tail xs.lhs ++ xs.rhs))
+def initSL : (sl : SymList α) → Option (SymList α)
+ | ⟨xs, ys, ok⟩ =>
+   if h₁ : ys.isEmpty then
+    if xs.isEmpty then none
+    else some nilSL
+   else
+    if h₂ : ys.length = 1 then
+      let p := List.splitInTwo (Subtype.mk xs (by rfl))
+      some (SymList.mk p.1.val p.2.val.reverse (by sorry))
+    else
+      some (SymList.mk xs ys.tail (by sorry))
 
-def initSL (xs : SymList a) : Option (SymList a) :=
-  let (us, vs) := xs.rhs.splitAt (xs.rhs.length / 2)
-  match xs.lhs, xs.rhs with
-  | [],      [] => none
-  | _ ,      [] => some nilSL
-  | _ , _ :: [] => some (toSL (us ++ reverse vs))
-  | _ , _       => some (toSL (xs.lhs ++ tail xs.rhs))-/
 
--- FIXME: Termination proof is missing;
--- might not need i if we finish the proofs for the original tailSL
-def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
+partial def initsSL (sl : SymList a) : SymList (SymList a) :=
+  if   nullSL sl
+  then snocSL sl nilSL
+  else
+    match initSL sl with
+    | none     => nilSL
+    | some isl => snocSL sl (initsSL isl)
+
+
+partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
   match sl with
-  | SymList.mk [] [] _ => nilSL
-  | SymList.mk xs ys _ =>
+  | ⟨[], [], _⟩ => nilSL
+  | ⟨xs, ys, _⟩ =>
     match headSL sl with
     | none => nilSL
     | some hsl =>
@@ -275,88 +256,24 @@ def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
         | none     => nilSL
         | some tsl => dropWhileSL p tsl
       else sl
- /-termination_by
-  lengthSL sl
- decreasing_by -- We need to show that tsl.lhs.length + tsl.rhs.length < xs.length + ys.length
-  simp [lengthSL, tailSL]
-  sorry
-  cases tsl.lhs with
-  | nil =>
-    simp [tailSL]
-    cases tsl.rhs with
-    | nil =>
-      simp
-
-      sorry
-    | cons _ _ =>
-      simp
-      sorry
-  | cons _ _ =>
-    simp [tailSL]
-    cases tsl.rhs with
-    | nil =>
-      simp
-      sorry
-    | cons _ _ =>
-      simp
-      sorry-/
-
--- FIXME: Termination proof is missing;
--- might not need it if we finish the proofs for the original initSL
-def initsSL (sl : SymList a) : SymList (SymList a) :=
-  if   nullSL sl
-  then snocSL sl nilSL
-  else
-    match initSL sl with
-    | none     => nilSL
-    | some isl => snocSL sl (initsSL isl)
- /-termination_by
-    lengthSL sl
- decreasing_by -- We need to show that isl.lhs.length + isl.rhs.length < xs.length + ys.length
-  simp [lengthSL, initSL]
-  sorry
-  cases isl.lhs with
-  | nil =>
-    simp [tailSL]
-    cases isl.rhs with
-    | nil =>
-      simp
-      sorry
-    | cons _ _ =>
-      simp
-      sorry
-  | cons _ _ =>
-    simp [tailSL]
-    cases isl.rhs with
-    | nil =>
-      simp
-      sorry
-    | cons _ _ =>
-      simp
-      sorry-/
-
-
-example (us vs : List Nat)
- : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
-
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
  cases s with
  | mk as bs h =>
-   induction bs with
+   cases bs with
    | nil =>
      simp [consSL, fromSL]
      simp at h
      apply Or.elim h
      intro h1 ; rw [h1]; simp
      intro h1
-     induction as with
+     cases as with
      | nil => simp
-     | cons z zs _ =>
+     | cons z zs =>
        simp at h1
        rw [h1]; simp
-   | cons z zs _ => simp [consSL, fromSL]
+   | cons z zs => simp [consSL, fromSL]
 
 
 end SL2
