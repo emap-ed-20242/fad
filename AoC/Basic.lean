@@ -1,7 +1,2 @@
 
-namespace AoC
-
-
-
-
-end AoC
+/- to utitilites -/

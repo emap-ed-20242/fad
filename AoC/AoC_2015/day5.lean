@@ -1,17 +1,15 @@
 -- Problem: https://adventofcode.com/2015/day/5
 
--- Defining input
-def input_day5 : String := include_str "inputs/input_day5.txt"
+namespace AoC2015D5
 
-def split_by_new_line (s : String) : List String :=
-  s.split (· == '\n')
+def content : String := include_str "../../data/AoC2015_day5.txt"
 
-def input_task := split_by_new_line input_day5
+def input := content.split (· == '\n')
 
--- Part 1:
+-- Part 1
+
 def is_vowel (c : Char) : Bool :=
   c ∈ ['a', 'e', 'i', 'o', 'u']
-
 
 def rule₁ (s : List Char) : Bool :=
   let num_vowels := s.foldl (λ acc c => if is_vowel c then acc + 1 else acc) 0
@@ -35,10 +33,11 @@ def count_nice_strings (ss : List String) : Nat :=
   ss.foldl (λ acc s => if is_nice s then acc + 1 else acc) 0
 
 
-#eval count_nice_strings input_task
+#eval count_nice_strings input
 
 
--- Part 2:
+-- Part 2
+
 def pairs_of_chairs : List Char -> List (List Char)
   | [] => []
   | [_] => []
@@ -69,4 +68,6 @@ def is_nice₂ (s : String) : Bool :=
 def count_nice_strings₂ (ss : List String) : Nat :=
   ss.foldl (λ acc s => if is_nice₂ s then acc + 1 else acc) 0
 
-#eval count_nice_strings₂ input_task
+#eval count_nice_strings₂ input
+
+end AoC2015D5

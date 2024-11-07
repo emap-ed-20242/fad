@@ -1,11 +1,13 @@
 -- Problem: https://adventofcode.com/2015/day/1
 
--- PART 1:
--- Defining input
-def input_task : String := include_str "inputs/input_day1.txt"
 
-def string_to_char_list (s : String) : List Char :=
-  s.toList
+namespace AoC2015D1
+
+def content : String := include_str "../../data/AoC2015_day1.txt"
+
+def input : List Char := content.toList
+
+-- PART 1
 
 def eval_floor : List Char → Int
   | [] => 0
@@ -17,9 +19,10 @@ def eval_floor : List Char → Int
     else
       eval_floor xs
 
-#eval eval_floor (string_to_char_list input_task)
+#eval eval_floor input
 
--- PART 2:
+-- PART 2
+
 def find_basement_position : List Char → Int → Int → Option Int
   | [], _, _ => none  -- No basement entry
   | '(' :: xs, floor, pos => find_basement_position xs (floor + 1) (pos + 1)
@@ -31,4 +34,6 @@ def find_basement_position : List Char → Int → Int → Option Int
       find_basement_position xs new_floor (pos + 1)
   | _ :: xs, floor, pos => find_basement_position xs floor (pos + 1)
 
-#eval find_basement_position (string_to_char_list input_task) 0 0
+#eval find_basement_position input 0 0
+
+end AoC2015D1
