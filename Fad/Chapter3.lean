@@ -83,6 +83,14 @@ def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 
 namespace SL2
 
+-- it may simplify the proofs
+structure SymList' (α : Type) where
+  lhs : List α
+  rhs : List α
+  ok : (lhs.length = 0 → rhs.length ≤ 1) ∧
+       (rhs.length = 0 → lhs.length ≤ 1)
+ deriving Repr
+
 structure SymList (α : Type) where
   lhs : List α
   rhs : List α
@@ -94,7 +102,6 @@ def nilSL : SymList a := SymList.mk [] [] (by simp)
 
 instance : Inhabited (SymList α) where
   default := nilSL
-
 
 def fromSL (sl : SymList a) : List a :=
  sl.lhs ++ sl.rhs.reverse
@@ -153,7 +160,6 @@ theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
     have h2 := Nat.div_eq_of_lt h3
     simp at h2
 
-
 def tailSL (as : SymList a) : Option (SymList a) :=
   match as with
   | ⟨xs, ys, ok⟩ =>
@@ -185,31 +191,27 @@ def tailSL (as : SymList a) : Option (SymList a) :=
        some (SymList.mk xs.tail ys (by
        simp at *
        apply And.intro
-       {
-        intro h₄; apply ok.1
-        have h₅ : xs = [] ∨ xs.length = 1 := by
-         cases xs with
-         | nil => simp
-         | cons b bs => right; simp ; simp at h₄; exact h₄
-        apply Or.elim h₅
-        { intro h ; exact h }
-        { intro h ; exfalso ; apply h₃ ; exact h }
-       }
-       {
-        cases ys with
-        | nil =>
-          simp ; simp at ok; left
-          apply Or.elim ok
-          { intro h ; exact False.elim (h₁ h) }
-          { intro h ; exact False.elim (h₃ h) }
-        | cons b bs =>
-          intro h₄; left;
-          apply Or.elim (ok.2 h₄)
-          { intro h ; exact False.elim (h₁ h) }
-          { intro h ; exact False.elim (h₃ h) }
-       }))
+       . intro h₄; apply ok.1
+         have h₅ : xs = [] ∨ xs.length = 1 := by
+          cases xs with
+          | nil => simp
+          | cons b bs => right; simp ; simp at h₄; exact h₄
+         apply Or.elim h₅
+         . intro h ; exact h
+         . intro h ; exfalso ; apply h₃ ; exact h
+       . cases ys with
+         | nil =>
+           simp ; simp at ok; left
+           apply Or.elim ok
+           . intro h ; exact False.elim (h₁ h)
+           . intro h ; exact False.elim (h₃ h)
+         | cons b bs =>
+           intro h₄; left;
+           apply Or.elim (ok.2 h₄)
+           . intro h ; exact False.elim (h₁ h)
+           . intro h ; exact False.elim (h₃ h) ))
 
-#eval tailSL (toSL $ List.iota 10)
+#eval tailSL (toSL $ List.iota 20)
 
 
 def initSL : (sl : SymList α) → Option (SymList α)
