@@ -237,18 +237,27 @@ partial def initsSL (sl : SymList a) : SymList (SymList a) :=
     | some isl => snocSL sl (initsSL isl)
 
 
-partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
-  match sl with
-  | ⟨[], [], _⟩ => nilSL
-  | ⟨xs, ys, _⟩ =>
+def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
+  if h: (sl.lhs.isEmpty ∧ sl.rhs.isEmpty) then nilSL else
     match headSL sl with
     | none => nilSL
     | some hsl =>
       if p hsl then
-        match tailSL sl with
-        | none     => nilSL
-        | some tsl => dropWhileSL p tsl
+        let tsl := tailSL sl
+        if h2: tsl.isNone then nilSL else
+          have h3 : tsl.isSome := by
+            rw [Option.isSome_iff_ne_none, ne_eq, <-Option.isNone_iff_eq_none]
+            exact h2
+          let tl := tsl.get h3
+          have : lengthSL ((tailSL sl).get h3) < lengthSL sl := by
+            unfold Option.get
+            simp
+            clear h2 tl
+            sorry
+          dropWhileSL p tl
       else sl
+
+    termination_by lengthSL sl
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
