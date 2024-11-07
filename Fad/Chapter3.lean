@@ -7,10 +7,6 @@ open List (reverse tail cons)
 
 def _root_.List.single (xs : List α) : Bool := xs.length = 1
 
-def _root_.List.splitAt (xs : List a) (n : Nat) : List a × List a :=
- (xs.take n, xs.drop n)
-
-
 /- motivação: algumas operações em listas encadeadas tem custo linear
    e outras constante. -/
 
@@ -47,7 +43,7 @@ def toSL : List a → SymList a
 def lastSL : SymList a → Option a
 | (xs, ys) => if ys.isEmpty then xs.head? else ys.head?
 
-#eval fromSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
+#eval snocSL 20 (snocSL 10 (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))))
 
 def tailSL (sl : SymList a) : Option (SymList a) :=
  match sl with
@@ -64,7 +60,6 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
  pure $ fromSL a
 
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))) >>= pure ∘ fromSL
-
 
 end SL1
 
@@ -88,6 +83,14 @@ def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 
 namespace SL2
 
+-- it may simplify the proofs
+structure SymList' (α : Type) where
+  lhs : List α
+  rhs : List α
+  ok : (lhs.length = 0 → rhs.length ≤ 1) ∧
+       (rhs.length = 0 → lhs.length ≤ 1)
+ deriving Repr
+
 structure SymList (α : Type) where
   lhs : List α
   rhs : List α
@@ -95,21 +98,13 @@ structure SymList (α : Type) where
        (rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1)
  deriving Repr
 
- def P (sl : SymList a) : Prop :=
- sl.1.length > sl.2.length
+def nilSL : SymList a := SymList.mk [] [] (by simp)
 
-example : ∀ sl : SymList Nat, P sl := by
-  intro sl
-  cases sl with
-  | mk as bs h => sorry
-
-#eval SymList.mk [1,2,3] [4,5,6] (by simp)
-#eval { lhs := [], rhs := [6], ok := (by simp) : SymList Nat }
+instance : Inhabited (SymList α) where
+  default := nilSL
 
 def fromSL (sl : SymList a) : List a :=
  sl.lhs ++ sl.rhs.reverse
-
-def nilSL : SymList a := SymList.mk [] [] (by simp)
 
 def snocSL : a → SymList a → SymList a
 | z, SymList.mk [] bs _ => SymList.mk bs [z] (by simp)
@@ -123,58 +118,155 @@ def toSL : List a → SymList a
  | [] => nilSL
  | x :: xs => consSL x (toSL xs)
 
-example (us vs : List Nat)
- : [] ++ reverse (us ++ vs) = reverse vs ++ reverse us := by simp
+def headSL : SymList a → Option a
+ | ⟨[], [], _⟩     => none
+ | ⟨[], y :: _, _⟩ => some y
+ | ⟨x::_, _, _⟩    => some x
 
-set_option trace.Meta.Tactic.simp.rewrite true in
-example : cons x ∘ fromSL = fromSL ∘ consSL x := by
-  funext s
-  cases s with
-  | mk as bs ok =>
-    simp [fromSL]
-    cases bs with
-    | nil => -- empty rhs
-      have h := ok.2 -- rhs.isEmpty → lhs.isEmpty ∨ lhs.length = 1
-      specialize h rfl
-      cases h with
-      | inl lhs_empty => -- lhs is empty
-        have as_empty : as = [] := by
-          cases as with
-          | nil => rfl
-          | cons _ _ => contradiction
-        subst as_empty
-        rfl
-      | inr lhs_single => -- lhs is single
-        cases as with
-        | nil => contradiction
-        | cons a as' =>
-          cases as' with
-          | nil =>
-            rfl
-          | cons b bs' =>
-            have h_len : (a :: b :: bs').length = 1 := lhs_single
-            simp at h_len
-    | cons b bs => -- non-empty rhs
-      simp [consSL, fromSL]
+def lastSL : SymList a → Option a
+| SymList.mk xs ys _ => if ys.isEmpty then xs.head? else ys.head?
 
+def nullSL (sl : SymList a) : Bool :=
+  sl.lhs.isEmpty ∧ sl.rhs.isEmpty
+
+def singleSL (sl : SymList a): Bool :=
+  (List.single sl.lhs ∧ sl.rhs.isEmpty) ∨
+  (List.single sl.rhs ∧ sl.lhs.isEmpty)
+
+def lengthSL (sl : SymList a) : Nat :=
+  sl.lhs.length + sl.rhs.length
+
+
+/- subtipos -/
+def p (h : List Nat) : Prop := h.length = 3
+
+def test₁ := (@Subtype.mk _ p [1,2,3] (by simp [p]))
+def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
+
+#check p [1,2,3]
+#eval test₁.val
+#check test₁.property
+#check List.splitInTwo test₁
+#check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
+
+
+/- can this proof be clear? omega! -/
+theorem tailSL_1 (a : Nat) (h : 0 = (a + 1) / 2) : a = 0 := by
+  cases a with
+  | zero => rfl
+  | succ b =>
+    rw [Nat.add_assoc] at h
+    have h3 : b + 2 < 2 := by simp at h
+    have h2 := Nat.div_eq_of_lt h3
+    simp at h2
+
+def tailSL (as : SymList a) : Option (SymList a) :=
+  match as with
+  | ⟨xs, ys, ok⟩ =>
+   if h₁ : xs.isEmpty
+   then
+    match ys with
+    | [] => none
+    | _  => some nilSL
+   else
+     if h₃ : xs.length = 1
+     then
+       let p := List.splitInTwo (Subtype.mk ys (by rfl))
+       some (SymList.mk p.2.val.reverse p.1 (by
+       simp at *
+       have h₄ := p.1.property
+       have h₅ := p.2.property
+       apply And.intro
+       . cases ys with
+         | nil => simp at h₅; simp [h₅]; left; assumption
+         | cons b bs =>
+           intro h₆; rw [h₆] at h₅; simp at h₄ h₅
+           right; rw [h₄]; omega -- no need of tailSL_1
+       . cases ys with
+         | nil => simp at h₄ h₅; simp [h₄]; left; rw [h₅]
+         | cons b bs =>
+           intro h₆; rw [h₆] at h₄; simp at h₄ h₅
+           right; rw [h₅]; omega))
+     else
+       some (SymList.mk xs.tail ys (by
+       simp at *
+       apply And.intro
+       . intro h₄; apply ok.1
+         have h₅ : xs = [] ∨ xs.length = 1 := by
+          cases xs with
+          | nil => simp
+          | cons b bs => right; simp ; simp at h₄; exact h₄
+         apply Or.elim h₅
+         . intro h ; exact h
+         . intro h ; exfalso ; apply h₃ ; exact h
+       . cases ys with
+         | nil =>
+           simp ; simp at ok; left
+           apply Or.elim ok
+           . intro h ; exact False.elim (h₁ h)
+           . intro h ; exact False.elim (h₃ h)
+         | cons b bs =>
+           intro h₄; left;
+           apply Or.elim (ok.2 h₄)
+           . intro h ; exact False.elim (h₁ h)
+           . intro h ; exact False.elim (h₃ h) ))
+
+#eval tailSL (toSL $ List.iota 20)
+
+
+def initSL : (sl : SymList α) → Option (SymList α)
+ | ⟨xs, ys, ok⟩ =>
+   if h₁ : ys.isEmpty then
+    match xs with
+    | [] => none
+    | _  => some nilSL
+   else
+    if h₂ : ys.length = 1 then
+      let p := List.splitInTwo (Subtype.mk xs (by rfl))
+      some (SymList.mk p.1.val p.2.val.reverse (by sorry))
+    else
+      some (SymList.mk xs ys.tail (by sorry))
+
+
+partial def initsSL (sl : SymList a) : SymList (SymList a) :=
+  if   nullSL sl
+  then snocSL sl nilSL
+  else
+    match initSL sl with
+    | none     => nilSL
+    | some isl => snocSL sl (initsSL isl)
+
+
+partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
+  match sl with
+  | ⟨[], [], _⟩ => nilSL
+  | ⟨xs, ys, _⟩ =>
+    match headSL sl with
+    | none => nilSL
+    | some hsl =>
+      if p hsl then
+        match tailSL sl with
+        | none     => nilSL
+        | some tsl => dropWhileSL p tsl
+      else sl
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
  cases s with
  | mk as bs h =>
-   induction bs with
+   cases bs with
    | nil =>
      simp [consSL, fromSL]
      simp at h
      apply Or.elim h
      intro h1 ; rw [h1]; simp
      intro h1
-     induction as with
+     cases as with
      | nil => simp
-     | cons z zs _ =>
+     | cons z zs =>
        simp at h1
-       rw [h1]; simp [List.reverse]
-   | cons z zs _ => simp [consSL, fromSL]
+       rw [h1]; simp
+   | cons z zs => simp [consSL, fromSL]
 
 
 end SL2
@@ -205,6 +297,10 @@ instance [ToString α] : ToString (Tree α) where
 def Tree.size : Tree a → Nat
  | leaf _ => 1
  | node n _ _ => n
+
+def Tree.height : Tree α → Nat
+ | leaf _ => 1
+ | node _ t₁ t₂ => 1 + max t₁.height t₂.height
 
 def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
  node (t₁.size + t₂.size) t₁ t₂
@@ -257,28 +353,35 @@ def fromRA : RAList a → List a :=
 
 
 def fetchT [ToString a] (n : Nat) (t : Tree a) : Option a :=
- dbg_trace "fetchT {n} {t.toString}"
  match n, t with
- | 0, leaf x => some x
+ | 0, leaf x => x
  | k, (node n t₁ t₂) =>
    let m := n / 2
-   if k < m
-   then fetchT k t₁ else fetchT (k - m) t₂
+   if k < m then fetchT k t₁ else fetchT (k - m) t₂
  | _, leaf _ => none
 
 def fetchRA [ToString a] (n : Nat) (ra : RAList a) : Option a :=
- dbg_trace "fetchRA {n} {ra.toString}"
  match n, ra with
  | _, [] => none
  | k, (zero :: xs) => fetchRA k xs
  | k, (one t :: xs) =>
    if k < size t then fetchT k t else fetchRA (k - size t) xs
 
-#eval fetchRA 2 [zero,
+#eval fetchRA 10 [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]
 
+
+def nilRA {a : Type} : RAList a := []
+
+def consRA (x : a) (xs : RAList a) : RAList a :=
+ consT (Tree.leaf x) xs
+where
+ consT : Tree a → RAList a → RAList a
+ | t1, [] => [Digit.one t1]
+ | t1, Digit.zero :: xs => Digit.one t1 :: xs
+ | t1, Digit.one t2 :: xs => Digit.zero :: consT (Tree.mk t1 t2) xs
 
 -- 3.3 Arrays
 
