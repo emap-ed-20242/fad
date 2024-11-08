@@ -2,9 +2,10 @@
 
 import Std.Data.HashSet
 
+namespace AoC2018D1
 -- PART 1:
 
-def input_day1 : String := include_str "inputs/input_day1.txt"
+def input_day1 : String := include_str "../../data/AoC2018_day1.txt"
 
 def remove_line_feed (s : String) : String :=
   s.replace "\x0d" ""
@@ -44,3 +45,5 @@ partial def find_first_duplicate_cumulative_sum (lst : List Int) : Int :=
   aux (Std.HashSet.empty.insert 0) 0 lst lst
 
 #eval find_first_duplicate_cumulative_sum <| input_task -- 558
+
+end AoC2018D1

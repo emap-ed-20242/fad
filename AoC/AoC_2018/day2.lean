@@ -1,8 +1,9 @@
 -- Problem: https://adventofcode.com/2018/day/2
 
+namespace AoC2018D2
 -- PART 1:
 
-def input_day2 : String := include_str "inputs/input_day2.txt"
+def input_day2 : String := include_str "../../data/AoC2018_day2.txt"
 
 def remove_line_feed (s : String) : String :=
   s.replace "\x0d" ""
@@ -56,3 +57,5 @@ def common_letters (s1 s2 : String) : String :=
   s1.toList.zip s2.toList |>.filter (fun (c1, c2) => c1 == c2) |>.map (·.1) |>.asString
 
 #eval common_letters correct_boxes.1 correct_boxes.2 -- "omlvgdokxfncvqyersasjziup"
+
+end AoC2018D2

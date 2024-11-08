@@ -1,18 +1,13 @@
 -- Problem: https://adventofcode.com/2018/day/3
 
+
+namespace AoC2018D3
+
 -- PART 1:
 
-def input_day3 : String := include_str "inputs/input_day3.txt"
+def content : String := include_str "../../data/AoC2018_day3.txt"
 
-def remove_line_feed (s : String) : String :=
-  s.replace "\x0d" ""
-
-def split_by_new_line (s : String) : List String :=
-  s.split (· == '\n')
-
-def input_task := split_by_new_line <| remove_line_feed <| input_day3
-
-#eval input_task
+def input := content.split (· == '\n')
 
 structure Claim where
   id : Nat
@@ -35,7 +30,7 @@ def parse_claim (s : String) : Option Claim :=
     some { id, left, top, width, height }
 
 def claims : List Claim :=
-  input_task.filterMap <| parse_claim
+  input.filterMap <| parse_claim
 
 #eval claims
 
@@ -83,3 +78,5 @@ def intact_claim_id : Option Nat :=
   find_intact_claim claims (mark_all_claims claims)
 
 #eval intact_claim_id.getD 0 -- 695
+
+end AoC2018D3

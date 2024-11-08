@@ -269,6 +269,10 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
    | cons z zs => simp [consSL, fromSL]
 
 
+example {a : Type} (x : a) : snoc x ∘ fromSL = fromSL ∘ snocSL x := by
+ sorry
+
+
 end SL2
 
 
