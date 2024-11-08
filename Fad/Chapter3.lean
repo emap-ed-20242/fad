@@ -236,24 +236,69 @@ partial def initsSL (sl : SymList a) : SymList (SymList a) :=
     | none     => nilSL
     | some isl => snocSL sl (initsSL isl)
 
+-- lema/funçao divide por 2 é SL
 
+theorem headSL_none_iff_nilSL: headSL sl = none ↔ sl = nilSL := by
+  apply Iff.intro <;> intro h
+  unfold headSL at h
+  split at h
+  unfold nilSL
+  exact rfl
+  repeat simp [eq_comm, <-Option.isNone_iff_eq_none] at h
+
+  rw [h]
+  unfold headSL nilSL
+  simp
+
+theorem lengthSL_zero_iff_nilSL: lengthSL sl = 0 ↔ sl = nilSL := by
+  apply Iff.intro <;> intro h
+  rw [lengthSL] at h
+  rw [Nat.add_eq_zero_iff] at h
+  repeat rw [List.length_eq_zero] at h
+  unfold nilSL
+  have ⟨h1, h2⟩ := h
+  have ⟨lhs, rhs, ok⟩ := sl
+  simp at h1 h2
+  simp [h1, h2]
+
+  rw [h]
+  unfold nilSL lengthSL
+  simp
+  
 def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
-  if h: (sl.lhs.isEmpty ∧ sl.rhs.isEmpty) then nilSL else
-    match headSL sl with
+  if sl.lhs.isEmpty ∧ sl.rhs.isEmpty then nilSL else
+    match h: headSL sl with
     | none => nilSL
     | some hsl =>
       if p hsl then
         let tsl := tailSL sl
-        if h2: tsl.isNone then nilSL else
-          have h3 : tsl.isSome := by
-            rw [Option.isSome_iff_ne_none, ne_eq, <-Option.isNone_iff_eq_none]
-            exact h2
-          let tl := tsl.get h3
-          have : lengthSL ((tailSL sl).get h3) < lengthSL sl := by
-            unfold Option.get
-            simp
-            clear h2 tl
-            sorry
+        match h2: tsl with
+        | none => nilSL
+        | some tl => 
+          have : lengthSL tl < lengthSL sl := by
+            rw [(show tsl = tailSL sl by simp)] at h2
+            unfold tailSL at h2
+            by_cases h3: sl.lhs.isEmpty
+            simp [h3] at h2
+            split at h2
+            simp [eq_comm, <-Option.isNone_iff_eq_none] at h2
+
+            rw [Option.some_inj, eq_comm] at h2
+            rw [h2]
+            rw [show lengthSL (nilSL : SymList a) = 0 by exact rfl]
+            rw [Nat.pos_iff_ne_zero, ne_eq, not_congr lengthSL_zero_iff_nilSL, <-headSL_none_iff_nilSL]
+            simp [h]
+
+            simp [h3] at h2           
+            by_cases h4: sl.lhs.length = 1 <;> simp [h4] at h2
+            unfold lengthSL
+            simp [<-h2]; clear h2
+            omega
+
+            rw [<-congrArg lengthSL h2]
+            unfold lengthSL
+            rw [List.isEmpty_iff_length_eq_zero] at h3
+            simp [Nat.sub_one_lt (show sl.lhs.length ≠ 0 by simp [h3])]
           dropWhileSL p tl
       else sl
 
