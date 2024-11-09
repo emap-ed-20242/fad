@@ -192,14 +192,59 @@ def initSL : (sl : SymList α) → Option (SymList α)
       simp at *
     ))
 
-partial def initsSL (sl : SymList a) : SymList (SymList a) :=
-  if   nullSL sl
+theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
+  simp [splitInTwoSL, lengthSL]
+  omega
+
+theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h) := by
+  rw [Option.isSome_iff_exists] at h
+  have ⟨isl, heq⟩ := h
+  have ⟨lsl, rsl, _⟩ := sl
+  clear h sl
+  unfold lengthSL
+  simp [heq]
+  unfold initSL at heq
+  by_cases h2: rsl.isEmpty
+  simp [h2] at heq
+  by_cases h3: lsl = []
+  subst h3
+  simp at *
+  simp [h3] at heq
+  subst heq
+  unfold nilSL
+  simp
+  have: lsl.length > 0 := by exact List.length_pos.mpr h3
+  omega
+  simp [h2] at heq
+  by_cases h5: rsl.length = 1
+  simp [h5] at heq
+  subst heq
+  rw [<-lengthSL, lengthSL_splitInTwoSL_eq_length]
+  simp [h5]
+  have ⟨lisl, risl, _⟩ := isl
+  simp [h5] at heq
+  have ⟨ls, rs⟩ := heq
+  subst ls rs
+  simp
+  apply Nat.sub_one_lt
+  simp
+  exact Not.imp h2 (congrArg List.isEmpty)
+  
+def initsSL (sl : SymList a) : SymList (SymList a) :=
+  if nullSL sl
   then snocSL sl nilSL
   else
-    match initSL sl with
+    match h2: initSL sl with
     | none     => nilSL
-    | some isl => snocSL sl (initsSL isl)
+    | some isl =>
+      have : lengthSL isl < lengthSL sl := by
+        rw [Option.eq_some_iff_get_eq] at h2
+        let ⟨h2v, h2p⟩ := h2
+        rw [<-h2p, <-gt_iff_lt]
+        exact lengthSL_initSL_lt_lengthSL
+      snocSL sl (initsSL isl)
 
+  termination_by lengthSL sl
 
 partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
   match sl with
