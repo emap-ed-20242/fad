@@ -171,9 +171,7 @@ def tailSL (as : SymList a) : Option (SymList a) :=
       else some (SymList.mk xs.tail ys (by
         simp [<-not_congr List.length_eq_zero] at h
         apply And.intro <;> (intro h3; have k :: (l :: ms) := xs)
-        simp at h3
-        simp at *
-        simp [ok] at h3
+        repeat simp [ok] at *
       ))
 
 def initSL : (sl : SymList α) → Option (SymList α)
