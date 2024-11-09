@@ -200,36 +200,19 @@ theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h)
   rw [Option.isSome_iff_exists] at h
   have ⟨isl, heq⟩ := h
   have ⟨lsl, rsl, _⟩ := sl
-  clear h sl
-  unfold lengthSL
-  simp [heq]
-  unfold initSL at heq
-  by_cases h2: rsl.isEmpty
-  simp [h2] at heq
-  by_cases h3: lsl = []
-  subst h3
-  simp at *
-  simp [h3] at heq
-  subst heq
-  unfold nilSL
-  simp
-  have: lsl.length > 0 := by exact List.length_pos.mpr h3
+  unfold lengthSL initSL
+  by_cases hl: lsl = [] <;> (by_cases hr: rsl = [] <;> simp at *)
+  subst hr hl
+  simp [initSL] at heq
+  by_cases hr1: rsl.length = 1 <;> simp [hl, hr, hr1, splitInTwoSL]
+  refine Nat.sub_one_lt (by simp [hr])
+  simp [hl, hr]
+  exact List.length_lt_of_drop_ne_nil hl
+  simp [hl, hr]
+  by_cases hr1: rsl.length = 1 <;> simp [hr, hl, hr1, splitInTwoSL]
   omega
-  simp [h2] at heq
-  by_cases h5: rsl.length = 1
-  simp [h5] at heq
-  subst heq
-  rw [<-lengthSL, lengthSL_splitInTwoSL_eq_length]
-  simp [h5]
-  have ⟨lisl, risl, _⟩ := isl
-  simp [h5] at heq
-  have ⟨ls, rs⟩ := heq
-  subst ls rs
-  simp
-  apply Nat.sub_one_lt
-  simp
-  exact Not.imp h2 (congrArg List.isEmpty)
-  
+  refine Nat.sub_one_lt (by simp [hr])
+ 
 def initsSL (sl : SymList a) : SymList (SymList a) :=
   if nullSL sl
   then snocSL sl nilSL
