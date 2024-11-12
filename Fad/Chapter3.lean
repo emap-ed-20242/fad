@@ -197,13 +197,6 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
 #check (fromSL ∘ tailSL : SymList Nat → List Nat)
 #check (tail ∘ fromSL : SymList Nat → List Nat)
 
-theorem fromSL_splitInTwoSL_eq_input : ∀ (as : List a), fromSL (splitInTwoSL as) = as := by
-intro as
-induction as with
-| nil => simp [splitInTwoSL, fromSL]
-| cons b bs _ =>
-  simp [splitInTwoSL, fromSL]
-
 example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
   intro sl
   have ⟨xs, ys, ok⟩ := sl
@@ -227,7 +220,7 @@ example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
       have ih := ih (by simp [h])
       simp [h, List.tail, fromSL] at ih
       simp [h, fromSL, tailSL]
-      exact fromSL_splitInTwoSL_eq_input (bs.reverse ++ [b])
+      simp [splitInTwoSL]
       -- as ≠ []
       simp [tailSL, h, fromSL]
 
