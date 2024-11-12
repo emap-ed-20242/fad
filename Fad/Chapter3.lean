@@ -149,6 +149,7 @@ def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
 #check List.splitInTwo test₁
 #check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
 
+
 def splitInTwoSL (xs : List a) : SymList a :=
   let p := List.splitInTwo (Subtype.mk xs (by rfl))
   SymList.mk p.1 p.2.val.reverse (by
@@ -156,41 +157,67 @@ def splitInTwoSL (xs : List a) : SymList a :=
     simp [aok, bok]
     apply And.intro <;> (intro h; simp [h] at bok aok)
     if h2: bs.length = 0 then simp at h2; simp [h2] else omega
-    if h2: as.length = 0 then simp at h2; simp [h2] else omega
-  )
+    if h2: as.length = 0 then simp at h2; simp [h2] else omega)
 
-def tailSL (as : SymList a) : Option (SymList a) :=
+def tailSL {a : Type} (as : SymList a) : SymList a :=
   match as with
   | ⟨xs, ys, ok⟩ =>
     if h : xs.isEmpty then
       match ys with
-      | [] => none
-      | _  => some nilSL
+      | [] => nilSL
+      |  _ => nilSL
     else
-      if h2 : xs.length = 1 then splitInTwoSL ys
-      else some (SymList.mk xs.tail ys (by
-        simp [<-not_congr List.length_eq_zero] at h
+      if h2 : xs.length = 1 then splitInTwoSL ys.reverse
+      else (SymList.mk xs.tail ys (by
+        simp [← not_congr List.length_eq_zero] at h
         apply And.intro <;> (intro h3; have k :: (l :: ms) := xs)
-        repeat simp [ok] at *
-      ))
+        repeat simp [ok] at *))
 
-def initSL : (sl : SymList α) → Option (SymList α)
+def initSL {a : Type} : (sl : SymList a) → SymList a
 | ⟨xs, ys, ok⟩ =>
   if h : ys.isEmpty then
     match xs with
-    | [] => none
-    | _  => some nilSL
+    | [] => nilSL
+    | _  => nilSL
   else
     if h2 : ys.length = 1 then splitInTwoSL xs
-    else some (SymList.mk xs ys.tail (by
-      simp [<-not_congr List.length_eq_zero] at h
+    else (SymList.mk xs ys.tail (by
+      simp [← not_congr List.length_eq_zero] at h
       apply And.intro
       all_goals
-      intro h3
-      simp [h3] at ok
-      have a :: [] := ys
-      simp at *
-    ))
+       intro h3
+       simp [h3] at ok
+       have a :: [] := ys
+       simp at *))
+
+#eval fromSL $ SymList.mk [1] [3,2] (by simp)
+#eval fromSL $ tailSL $ SymList.mk [1] [3,2] (by simp)
+#eval fromSL $ initSL $ SymList.mk [1] [3,2] (by simp)
+
+#check (fromSL ∘ tailSL : SymList Nat → List Nat)
+#check (tail ∘ fromSL : SymList Nat → List Nat)
+
+example : ∀ as : SymList Nat, fromSL (tailSL as) = tail (fromSL as) := by
+ intro sl
+ match sl with
+ | ⟨xs, ys, ok⟩ =>
+   cases xs with
+   | nil =>
+     induction ys with
+     | nil => simp [tailSL, fromSL, nilSL]
+     | cons b bs =>
+       simp [fromSL, tailSL, nilSL]
+       simp [ok] at *
+       rw [ok]
+       rw [List.reverse_nil,List.nil_append, List.tail]
+   | cons a as =>
+     induction ys with
+     | nil =>
+       rw [fromSL, tailSL, nilSL, splitInTwoSL]
+       simp at *
+       rw [fromSL]; simp; sorry
+     | cons b bs => sorry
+
 
 theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
   simp [splitInTwoSL, lengthSL]
@@ -212,7 +239,7 @@ theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h)
   by_cases hr1: rsl.length = 1 <;> simp [hr, hl, hr1, splitInTwoSL]
   omega
   refine Nat.sub_one_lt (by simp [hr])
- 
+
 def initsSL (sl : SymList a) : SymList (SymList a) :=
   if nullSL sl
   then snocSL sl nilSL
@@ -226,7 +253,6 @@ def initsSL (sl : SymList a) : SymList (SymList a) :=
         rw [<-h2p, <-gt_iff_lt]
         exact lengthSL_initSL_lt_lengthSL
       snocSL sl (initsSL isl)
-
   termination_by lengthSL sl
 
 partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=

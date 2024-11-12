@@ -25,14 +25,14 @@ def mcc : List component → candidate :=
 open Chapter1 (tails) in
 
 def pairs (xs : List a) : List (Prod a a) :=
- let step : List a → List (Prod a a) → List (Prod a a)
+ let step₁ : List a → List (Prod a a) → List (Prod a a)
   | [], acc => acc
   | x::ys, acc =>
-    let step' : List a → List (Prod a a) → List (Prod a a)
+    let step₂ : List a → List (Prod a a) → List (Prod a a)
      | [], acc => acc
      | y::_, acc => (x, y) :: acc
-    (tails ys).foldr step' acc
- (tails xs).foldr step []
+    (tails ys).foldr step₂ acc
+ (tails xs).foldr step₁ []
 
 #eval pairs [1,2,3]
 
