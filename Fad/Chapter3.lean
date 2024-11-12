@@ -197,27 +197,39 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
 #check (fromSL ∘ tailSL : SymList Nat → List Nat)
 #check (tail ∘ fromSL : SymList Nat → List Nat)
 
-example : ∀ as : SymList Nat, fromSL (tailSL as) = tail (fromSL as) := by
- intro sl
- match sl with
- | ⟨xs, ys, ok⟩ =>
-   cases xs with
-   | nil =>
-     induction ys with
-     | nil => simp [tailSL, fromSL, nilSL]
-     | cons b bs =>
-       simp [fromSL, tailSL, nilSL]
-       simp [ok] at *
-       rw [ok]
-       rw [List.reverse_nil,List.nil_append, List.tail]
-   | cons a as =>
-     induction ys with
-     | nil =>
-       rw [fromSL, tailSL, nilSL, splitInTwoSL]
-       simp at *
-       rw [fromSL]; simp; sorry
-     | cons b bs => sorry
+theorem fromSL_splitInTwoSL_eq_input : ∀ (as : List a), fromSL (splitInTwoSL as) = as := by
+intro as
+induction as with
+| nil => simp [splitInTwoSL, fromSL]
+| cons b bs _ =>
+  simp [splitInTwoSL, fromSL]
 
+example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
+  intro sl
+  have ⟨xs, ys, ok⟩ := sl
+
+  cases xs with
+  | nil =>
+    induction ys with
+    | nil => simp [tailSL, fromSL, nilSL]
+    | cons b bs =>
+      simp [fromSL, tailSL, nilSL]
+      simp [ok] at *
+      rw [ok]
+      rw [List.reverse_nil, List.nil_append, List.tail]
+  | cons a as =>
+    induction ys with
+    | nil =>
+      by_cases h: as = [] <;> simp [h, fromSL, tailSL, splitInTwoSL]
+    | cons b bs ih =>
+      by_cases h: as = []
+      -- as = []
+      have ih := ih (by simp [h])
+      simp [h, List.tail, fromSL] at ih
+      simp [h, fromSL, tailSL]
+      exact fromSL_splitInTwoSL_eq_input (bs.reverse ++ [b])
+      -- as ≠ []
+      simp [tailSL, h, fromSL]
 
 theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
   simp [splitInTwoSL, lengthSL]
