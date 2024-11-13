@@ -2,46 +2,46 @@
 
 namespace AoC2017D2
 
-def input_day2 : String := include_str "../../data/AoC2017_day2.txt"
+def inp : String := include_str "../../data/AoC2017_day2.txt"
 
-def psSheet (s : String) : List (List Nat) :=
-  s.replace "\r" ""
+def parseSheet (txt : String) : List (List Nat) :=
+  txt.replace "\r" ""
    |>.split (· == '\n')
    |>.map (fun line =>
        line.split (fun c => c == ' ' || c == '\t')
        |>.filterMap String.toNat?
    )
 
-def SheetData : List (List Nat) := psSheet input_day2
+def sheet : List (List Nat) := parseSheet inp
 
 -- Parte 1
-def rwDiff (rw : List Nat) : Nat :=
+def rowDiff (rw : List Nat) : Nat :=
   match rw with
   | [] => 0
   | x :: xs =>
-    let maxVal := List.foldl max x xs
-    let minVal := List.foldl min x xs
-    maxVal - minVal
+    let mx := List.foldl max x xs
+    let mn := List.foldl min x xs
+    mx - mn
 
-def cksum (sheet : List (List Nat)) : Nat :=
-  sheet.foldl (fun acc rw => acc + rwDiff rw) 0
+def checksum (sheet : List (List Nat)) : Nat :=
+  sheet.foldl (fun acc rw => acc + rowDiff rw) 0
 
-#eval cksum SheetData
+#eval checksum sheet
 
 -- Parte 2
-def GenPairs (rw : List Nat) : List (Nat × Nat) :=
+def genPairs (rw : List Nat) : List (Nat × Nat) :=
   rw.foldl (fun acc x =>
-    acc ++ (rw.filter (fun (y : Nat) => y ≠ x)).map (fun (y : Nat) => (x, y))
+    acc ++ (rw.filter (fun y => y ≠ x)).map (fun y => (x, y))
   ) []
 
-def DivPair (rw : List Nat) : Nat :=
-  let pairs := GenPairs rw
-  let validPairs := pairs.filter (fun (a, b) => a % b == 0)
-  match validPairs.head? with
+def divPair (rw : List Nat) : Nat :=
+  let pairs := genPairs rw
+  let valid := pairs.filter (fun (a, b) => a % b == 0)
+  match valid.head? with
   | some (a, b) => a / b
   | none => 0
 
-def cksum2 (sheet : List (List Nat)) : Nat :=
-  sheet.foldl (fun acc rw => acc + DivPair rw) 0
+def checksum2 (sheet : List (List Nat)) : Nat :=
+  sheet.foldl (fun acc rw => acc + divPair rw) 0
 
-#eval cksum2 SheetData
+#eval checksum2 sheet
