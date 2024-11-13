@@ -88,28 +88,69 @@ def halve₁ : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
  List.foldr op ([],[])
 
-#eval halve₁ [1,2,3,4,5,6,7,8,9,10]
+-- inspirado em:
+-- https://github.com/leanprover-community/mathlib4/blob/8666bd82efec40b8b3a5abca02dc9b24bbdf2652/Mathlib/Init/Data/Nat/Lemmas.lean#L482-L486
 
--- can we prove this function is total?
-partial def mkTree : (xs : List a) → Tree a
- | []  => Tree.null
- | [a] => Tree.leaf a
- | x::xs  =>
-   let p := halve₁ (x::xs)
-   Tree.node (mkTree p.1) (mkTree p.2)
+def twoStepInduction {P : List a → Prop}
+  (empty : P [])
+  (single : ∀ as, as.length = 1 → P as)
+  (more : ∀ a b as, P as → P (a :: b :: as)) : ∀ as, P as
+  | [] => empty
+  | a :: [] => single [a] (by simp)
+  | a :: b :: cs => more _ _ _ (twoStepInduction empty single more _)
+
+theorem length_halve_fst : (halve₁ xs).fst.length = xs.length / 2 := by
+induction xs using twoStepInduction with
+| empty => simp [halve₁]
+| single a h =>
+  have _ :: [] := a
+  simp [halve₁]
+| more a b cs ih =>
+  rw [halve₁, List.foldr, List.foldr, <-halve₁]
+  simp
+  omega
+
+theorem length_halve_snd : (halve₁ xs).snd.length = (xs.length + 1) / 2 := by
+induction xs using twoStepInduction with
+| empty => simp [halve₁]
+| single a h =>
+  have _ :: [] := a
+  simp [halve₁]
+| more a b cs ih =>
+  rw [halve₁, List.foldr, List.foldr, <-halve₁]
+  simp
+  omega
+
+def mkTree : (as : List a) → Tree a
+| [] => Tree.null
+| x :: xs =>
+  if h: xs.length = 0 then Tree.leaf x
+  else
+    let p := halve₁ (x :: xs)
+    have : (halve₁ (x :: xs)).fst.length < xs.length + 1 :=
+     by simp [length_halve_fst]; omega
+    have : (halve₁ (x :: xs)).snd.length < xs.length + 1 :=
+     by simp [length_halve_snd]; omega
+    Tree.node (mkTree p.1) (mkTree p.2)
+ termination_by xs => xs.length
 
 def msort₀ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
  (xs : List a) : List a :=
  (flatten ∘ mkTree) xs
 
-partial def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
- : List a → List a
- | []  => []
- | [x] => [x]
- | xs  =>
-    let p := halve₁ xs
+def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)] : List a → List a
+| []  => []
+| x :: xs =>
+  if h: xs.length = 0 then [x]
+  else
+    let p := halve₁ (x :: xs)
+    have : (halve₁ (x :: xs)).fst.length < xs.length + 1 := by simp [length_halve_fst]; omega
+    have : (halve₁ (x :: xs)).snd.length < xs.length + 1 := by simp [length_halve_snd]; omega
     merge (msort₁ p.1) (msort₁ p.2)
 
+ termination_by xs => xs.length
+
+#eval msort₁ [5,3,4,2,1,1]
 #eval msort₁ [1,2,3,4,5]
 #eval msort₁ ['a','b','a']
 
