@@ -200,12 +200,11 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
 example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
   intro sl
   have ⟨xs, ys, ok⟩ := sl
-
   cases xs with
   | nil =>
     induction ys with
     | nil => simp [tailSL, fromSL, nilSL]
-    | cons b bs =>
+    | cons b bs ih =>
       simp [fromSL, tailSL, nilSL]
       simp [ok] at *
       rw [ok]
@@ -216,13 +215,11 @@ example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
       by_cases h: as = [] <;> simp [h, fromSL, tailSL, splitInTwoSL]
     | cons b bs ih =>
       by_cases h: as = []
-      -- as = []
-      have ih := ih (by simp [h])
-      simp [h, List.tail, fromSL] at ih
-      simp [h, fromSL, tailSL]
-      simp [splitInTwoSL]
-      -- as ≠ []
-      simp [tailSL, h, fromSL]
+      . simp [h, List.tail, fromSL] at ih
+        simp [h, fromSL, tailSL]
+        simp [splitInTwoSL]
+      . simp [tailSL, h, fromSL]
+
 
 theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
   simp [splitInTwoSL, lengthSL]
@@ -245,6 +242,7 @@ theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h)
   omega
   refine Nat.sub_one_lt (by simp [hr])
 
+
 def initsSL (sl : SymList a) : SymList (SymList a) :=
   if nullSL sl
   then snocSL sl nilSL
@@ -260,6 +258,7 @@ def initsSL (sl : SymList a) : SymList (SymList a) :=
       snocSL sl (initsSL isl)
   termination_by lengthSL sl
 
+
 partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
   match sl with
   | ⟨[], [], _⟩ => nilSL
@@ -272,6 +271,7 @@ partial def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
         | none     => nilSL
         | some tsl => dropWhileSL p tsl
       else sl
+
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
