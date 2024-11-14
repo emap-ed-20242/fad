@@ -1,4 +1,6 @@
--- Problem: https://adventofcode.com/2020/day/1
+/-!
+# Problem: https://adventofcode.com/2020/day/1
+-/
 
 namespace AoC2020D1
 
@@ -14,6 +16,7 @@ def numbers_list : List Nat := process_data raw_data
 #eval numbers_list
 
 ----------------- part one -----------------
+
 def solve₁ (xs : List Nat) (val: Nat): Option (Nat × Nat) :=
   match xs with
   | [] => none
@@ -24,6 +27,7 @@ def solve₁ (xs : List Nat) (val: Nat): Option (Nat × Nat) :=
 
 #eval solve₁ numbers_list 2020 -- some(1917, 103)
 #eval 1917 * 103 -- 197451 *part 1 solution*
+
 
 ----------------- part two -----------------
 

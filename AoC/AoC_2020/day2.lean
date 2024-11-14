@@ -1,4 +1,6 @@
--- Problem: https://adventofcode.com/2020/day/2
+/-!
+# Problem: https://adventofcode.com/2020/day/2
+-/
 
 namespace AoC2020D2
 
@@ -46,7 +48,7 @@ def solve₁! (ps: List PolicyAndPassword) : Nat :=
     if p.low ≤ n ∧ n ≤ p.high then 1 + solve₁! ps'
     else solve₁! ps'
 
-#eval solve₁! pps -- 524 *part 1 solution*
+#eval solve₁! pps -- 524 part 1 solution
 
 ----------------- part two -----------------
 
@@ -61,6 +63,6 @@ def solve₂! (ps: List PolicyAndPassword) : Nat :=
     if (flag₁ ∧ ¬flag₂) ∨ (¬flag₁ ∧ flag₂) then 1 + solve₂! ps'
     else solve₂! ps'
 
-#eval solve₂! pps -- 485 *part 2 solution*
+#eval solve₂! pps -- 485 part 2 solution
 
 end AoC2020D2
