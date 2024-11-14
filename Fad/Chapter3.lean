@@ -197,7 +197,7 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
 #check (fromSL ∘ tailSL : SymList Nat → List Nat)
 #check (tail ∘ fromSL : SymList Nat → List Nat)
 
-example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
+example : ∀ (as : SymList α), fromSL (tailSL as) = tail (fromSL as) := by
   intro sl
   have ⟨xs, ys, ok⟩ := sl
   cases xs with
@@ -212,7 +212,7 @@ example : ∀ (as : SymList a), fromSL (tailSL as) = tail (fromSL as) := by
   | cons a as =>
     induction ys with
     | nil =>
-      by_cases h: as = [] <;> simp [h, fromSL, tailSL, splitInTwoSL]
+      by_cases h : as = [] <;> simp [h, fromSL, tailSL, splitInTwoSL]
     | cons b bs ih =>
       by_cases h: as = []
       . simp [h, List.tail, fromSL] at ih
