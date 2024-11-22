@@ -129,12 +129,7 @@ mutual
 end
 
 
-def list (y : List α) : Nat × List α := (y.length, y)
 
-abbrev l1 (x : List α):= (list x).1
-abbrev l2 (x : List α):= (list x).2
-abbrev q (x : List α) [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)]:= qsort3 (l1 x) (l2 x)
-
-#eval!  q [1,2,3,4,5,1,6,3,6,3] |> List.length
-#eval!  q [1,2,3,4,5,1,6,3,6,3]
-#eval!  [1,2,3,4,5,1,6,3,6,3] |> List.length
+#eval qsort₂ 10 [1,2,3,4,5,1,6,3,6,3] |> List.length
+#eval!  qsort₂ 10  [1,2,3,4,5,1,6,3,6,3]
+#eval!  qsort2 [1,2,3,4,5,1,6,3,6,3] |> List.length
