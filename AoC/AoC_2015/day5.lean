@@ -9,32 +9,25 @@ def input := content.split (· == '\n')
 -- Part 1
 
 def is_vowel (c : Char) : Bool :=
-  c ∈ ['a', 'e', 'i', 'o', 'u']
+  c ∈ "aeoiu".toList
 
 def rule₁ (s : List Char) : Bool :=
-  let num_vowels := s.foldl (λ acc c => if is_vowel c then acc + 1 else acc) 0
-  num_vowels ≥ 3
+  (s.foldl (λ acc c => if is_vowel c then acc + 1 else acc) 0) ≥ 3
 
 def rule₂ : List Char -> Bool
-  | []        => false
-  | [_]       => false
-  | c1 :: c2 :: cs => if c1 = c2 then true else rule₂ (c2 :: cs)
+ | []        => false
+ | [_]       => false
+ | c1 :: c2 :: cs => if c1 = c2 then true else rule₂ (c2 :: cs)
 
 def rule₃ (s : List Char) : Bool :=
-  let forbidden := ['a', 'b'] :: ['c', 'd'] :: ['p', 'q'] :: ['x', 'y'] :: []
-  ¬(s.zip s.tail |>.any (λ ⟨c1, c2⟩ => forbidden.contains [c1, c2]))
-
+  let f := ["ab", "cd", "pq", "xy"]
+  ¬(s.zip s.tail |>.any (λ p => f.contains s!"{p.1}{p.2}"))
 
 def is_nice (s : String) : Bool :=
-  let chars := s.toList
-  rule₁ chars ∧ rule₂ chars ∧ rule₃ chars
+  let cs := s.toList
+  rule₁ cs ∧ rule₂ cs ∧ rule₃ cs
 
-def count_nice_strings (ss : List String) : Nat :=
-  ss.foldl (λ acc s => if is_nice s then acc + 1 else acc) 0
-
-
-#eval count_nice_strings input
-
+#eval input.foldl (λ acc s => if is_nice s then acc + 1 else acc) 0
 
 -- Part 2
 

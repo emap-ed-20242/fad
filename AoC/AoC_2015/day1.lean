@@ -9,31 +9,22 @@ def input : List Char := content.toList
 
 -- PART 1
 
-def eval_floor : List Char → Int
-  | [] => 0
-  | x :: xs =>
-    if x = '(' then
-      1 + eval_floor xs
-    else if x = ')' then
-      -1 + eval_floor xs
-    else
-      eval_floor xs
+def part1 (input : String) : Int :=
+  input.foldl (λ acc ch => if ch = '(' then acc + 1 else acc - 1) 0
 
-#eval eval_floor input
+#eval part1 content
+
 
 -- PART 2
 
-def find_basement_position : List Char → Int → Int → Option Int
-  | [], _, _ => none  -- No basement entry
-  | '(' :: xs, floor, pos => find_basement_position xs (floor + 1) (pos + 1)
-  | ')' :: xs, floor, pos =>
-    let new_floor := floor - 1
-    if new_floor = -1 then
-      some (pos + 1)  -- Return the 1-based index when reaching the basement
-    else
-      find_basement_position xs new_floor (pos + 1)
-  | _ :: xs, floor, pos => find_basement_position xs floor (pos + 1)
+def find_basement : List Char → Int → Int → Option Int
+  | []       , _  , _     => none
+  | _        , -1 , pos   => some pos
+  | '(' :: xs, floor, pos => find_basement xs (floor + 1) (pos + 1)
+  | ')' :: xs, floor, pos => find_basement xs (floor - 1) (pos + 1)
+  |   _ :: _, _, _        => none
 
-#eval find_basement_position input 0 0
+#eval find_basement input 0 0
+
 
 end AoC2015D1

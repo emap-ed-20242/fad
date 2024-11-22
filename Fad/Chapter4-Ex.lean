@@ -13,7 +13,7 @@ But for t = 1024 and f x = x^2 below f x = t and f (x + 1) > t
 #eval (fun x => dbg_trace "fun {x}"; x * x) 33
 
 
-/- 4.3 
+/- 4.3
 
 Vamos provar por indução que
 
@@ -49,7 +49,17 @@ proposição.
 
 /- 4.4 : see the book -/
 
-/- 4.6 -/
+/-!
+# Exercicio 4.5
+
+Indexing the coordinates from zero, the positions are
+(0, 9), (5, 6), (7, 5), (9, 0)
+-/
+
+/-!
+# Exercicio 4.6
+
+-/
 
 #eval D2.search₁ (λ (x, y) => x ^ 3 + y ^ 3) 1729
 
