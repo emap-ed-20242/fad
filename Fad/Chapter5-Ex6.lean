@@ -105,6 +105,29 @@ mutual
     termination_by t
 end
 
+mutual
+  def qsort₂ [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)] (n : Nat) (y : List α) : List α :=
+    if n = 0 then y else
+      if  _ : y.length = 0 then []
+      else
+        let x::xs := y
+        help₂ n x xs [] []
+   termination_by (n, sizeOf y)
+
+  def help₂  (t : Nat) (x : α) (ys us vs: List α) [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)] : List α:=
+    if t = 0 then x::ys else
+    if _ : ys = [] then
+      (qsort₂ (t - 1 - vs.length) us) ++ [x] ++ (qsort₂ (t- 1 - us.length) vs)
+    else
+      let y::xs := ys
+    if  x ≤ y then
+      help₂ t x xs us (y::vs)
+
+    else
+      help₂ t x xs (y::us) vs
+    termination_by (t, sizeOf ys)
+end
+
 
 def list (y : List α) : Nat × List α := (y.length, y)
 
