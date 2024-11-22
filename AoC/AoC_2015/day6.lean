@@ -97,3 +97,5 @@ def solve₂ (instructions : List (String × Nat × Nat × Nat × Nat)) : Nat :=
   count_brightness final_grid
 
 #eval solve₂ parsed_instructions
+
+end AoC2015D6
