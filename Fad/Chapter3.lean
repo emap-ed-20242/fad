@@ -149,6 +149,7 @@ def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
 #check List.splitInTwo test₁
 #check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
 
+
 def splitInTwoSL (xs : List a) : SymList a :=
   let p := List.splitInTwo (Subtype.mk xs (by rfl))
   SymList.mk p.1 p.2.val.reverse (by
@@ -156,76 +157,129 @@ def splitInTwoSL (xs : List a) : SymList a :=
     simp [aok, bok]
     apply And.intro <;> (intro h; simp [h] at bok aok)
     if h2: bs.length = 0 then simp at h2; simp [h2] else omega
-    if h2: as.length = 0 then simp at h2; simp [h2] else omega
-  )
+    if h2: as.length = 0 then simp at h2; simp [h2] else omega)
 
-def tailSL (as : SymList a) : Option (SymList a) :=
+def tailSL {a : Type} (as : SymList a) : SymList a :=
   match as with
   | ⟨xs, ys, ok⟩ =>
     if h : xs.isEmpty then
       match ys with
-      | [] => none
-      | _  => some nilSL
+      | [] => nilSL
+      |  _ => nilSL
     else
-      if h2 : xs.length = 1 then splitInTwoSL ys
-      else some (SymList.mk xs.tail ys (by
-        simp [<-not_congr List.length_eq_zero] at h
+      if h2 : xs.length = 1 then splitInTwoSL ys.reverse
+      else (SymList.mk xs.tail ys (by
+        simp [← not_congr List.length_eq_zero] at h
         apply And.intro <;> (intro h3; have k :: (l :: ms) := xs)
-        repeat simp [ok] at *
-      ))
+        repeat simp [ok] at *))
 
-def initSL : (sl : SymList α) → Option (SymList α)
+def initSL {a : Type} : (sl : SymList a) → SymList a
 | ⟨xs, ys, ok⟩ =>
   if h : ys.isEmpty then
     match xs with
-    | [] => none
-    | _  => some nilSL
+    | [] => nilSL
+    | _  => nilSL
   else
     if h2 : ys.length = 1 then splitInTwoSL xs
-    else some (SymList.mk xs ys.tail (by
-      simp [<-not_congr List.length_eq_zero] at h
+    else (SymList.mk xs ys.tail (by
+      simp [← not_congr List.length_eq_zero] at h
       apply And.intro
       all_goals
-      intro h3
-      simp [h3] at ok
-      have a :: [] := ys
-      simp at *
-    ))
+       intro h3
+       simp [h3] at ok
+       have a :: [] := ys
+       simp at *))
+
+#eval fromSL $ SymList.mk [1] [3,2] (by simp)
+#eval fromSL $ tailSL $ SymList.mk [1] [3,2] (by simp)
+#eval fromSL $ initSL $ SymList.mk [1] [3,2] (by simp)
+
+#check (fromSL ∘ tailSL : SymList Nat → List Nat)
+#check (tail ∘ fromSL : SymList Nat → List Nat)
+
+example : ∀ (as : SymList α), fromSL (tailSL as) = tail (fromSL as) := by
+  intro sl
+  have ⟨xs, ys, ok⟩ := sl
+  cases xs with
+  | nil =>
+    induction ys with
+    | nil => simp [tailSL, fromSL, nilSL]
+    | cons b bs ih =>
+      simp [fromSL, tailSL, nilSL]
+      simp [ok] at *
+      rw [ok]
+      rw [List.reverse_nil, List.nil_append, List.tail]
+  | cons a as =>
+    induction ys with
+    | nil =>
+      by_cases h : as = [] <;> simp [h, fromSL, tailSL, splitInTwoSL]
+    | cons b bs ih =>
+      by_cases h: as = []
+      . simp [h, List.tail, fromSL] at ih
+        simp [h, fromSL, tailSL]
+        simp [splitInTwoSL]
+      . simp [tailSL, h, fromSL]
+
 
 theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
   simp [splitInTwoSL, lengthSL]
   omega
 
-theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h) := by
-  rw [Option.isSome_iff_exists] at h
-  have ⟨isl, heq⟩ := h
+theorem lengthSL_initSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : lengthSL sl > lengthSL (initSL sl) := by
   have ⟨lsl, rsl, _⟩ := sl
   unfold lengthSL initSL
-  by_cases hl: lsl = [] <;> (by_cases hr: rsl = [] <;> simp at *)
-  subst hr hl
-  simp [initSL] at heq
-  by_cases hr1: rsl.length = 1 <;> simp [hl, hr, hr1, splitInTwoSL]
-  refine Nat.sub_one_lt (by simp [hr])
-  simp [hl, hr]
-  exact List.length_lt_of_drop_ne_nil hl
-  simp [hl, hr]
-  by_cases hr1: rsl.length = 1 <;> simp [hr, hl, hr1, splitInTwoSL]
+  simp
+  simp [nilSL] at h
+  by_cases hr: rsl = [] <;> simp [hr]
+  by_cases hl: lsl = [] <;> simp [hl]
+  have := h hl
+  contradiction
+  simp [nilSL]
+  simp [<-List.length_eq_zero] at hl
   omega
-  refine Nat.sub_one_lt (by simp [hr])
- 
+  by_cases hr2: rsl.length = 1 <;> simp [hr2]
+  rw [<-lengthSL]
+  simp [lengthSL_splitInTwoSL_eq_length]
+  refine @Nat.sub_one_lt_of_lt rsl.length 0 (by
+    simp [<-List.length_eq_zero] at hr
+    omega
+  )
+
+theorem lengthSL_tailSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : lengthSL sl > lengthSL (tailSL sl) := by
+  have ⟨lsl, rsl, _⟩ := sl
+  unfold lengthSL tailSL
+  simp
+  simp [nilSL] at h
+  by_cases hr: rsl = [] <;> (simp [hr]; by_cases hl: lsl = [] <;> simp [hl])
+  have := h hl
+  contradiction
+  by_cases hl2: lsl.length = 1 <;> simp [hl2]
+  simp [splitInTwoSL]
+  refine @Nat.sub_one_lt_of_lt lsl.length 0 (by
+    have : lsl.length ≠ 0 := by simp [hl]
+    omega
+  )
+  exact List.length_lt_of_drop_ne_nil (h hl)
+  by_cases hl2: lsl.length = 1 <;> simp [hl2]
+  rw [<-lengthSL]
+  rw [lengthSL_splitInTwoSL_eq_length]
+  simp
+  refine @Nat.sub_one_lt_of_lt lsl.length 0 (by
+    have : lsl.length ≠ 0 := by simp [hl]
+    omega
+  )
+
 def initsSL (sl : SymList a) : SymList (SymList a) :=
-  if nullSL sl
+  if h: nullSL sl
   then snocSL sl nilSL
   else
-    match h2: initSL sl with
-    | none     => nilSL
-    | some isl =>
-      have : lengthSL isl < lengthSL sl := by
-        rw [Option.eq_some_iff_get_eq] at h2
-        let ⟨h2v, h2p⟩ := h2
-        rw [<-h2p, <-gt_iff_lt]
-        exact lengthSL_initSL_lt_lengthSL
-      snocSL sl (initsSL isl)
+    have : lengthSL (initSL sl) < lengthSL sl := lengthSL_initSL_lt_lengthSL sl (by
+      have ⟨lsl, rsl, _⟩ := sl
+      simp [nullSL] at h
+      simp [nilSL]
+      exact h
+    )
+    snocSL sl (initsSL (initSL sl))
       
   termination_by lengthSL sl
 
@@ -262,35 +316,16 @@ def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
     | none => nilSL
     | some hsl =>
       if p hsl then
-        let tsl := tailSL sl
-        match h2: tsl with
-        | none => nilSL
-        | some tl => 
-          have : lengthSL tl < lengthSL sl := by
-            rw [(show tsl = tailSL sl by simp)] at h2
-            unfold tailSL at h2
-            by_cases h3: sl.lhs.isEmpty
-            simp [h3] at h2
-            split at h2
-            simp [eq_comm, <-Option.isNone_iff_eq_none] at h2
-
-            rw [Option.some_inj, eq_comm] at h2
-            rw [h2]
-            rw [show lengthSL (nilSL : SymList a) = 0 by exact rfl]
-            rw [Nat.pos_iff_ne_zero, ne_eq, not_congr lengthSL_zero_iff_nilSL, <-headSL_none_iff_nilSL]
-            simp [h]
-
-            simp [h3] at h2           
-            by_cases h4: sl.lhs.length = 1 <;> simp [h4] at h2
-            unfold lengthSL
-            simp [<-h2]; clear h2
-            omega
-
-            rw [<-congrArg lengthSL h2]
-            unfold lengthSL
-            rw [List.isEmpty_iff_length_eq_zero] at h3
-            simp [Nat.sub_one_lt (show sl.lhs.length ≠ 0 by simp [h3])]
-          dropWhileSL p tl
+        let tl := tailSL sl
+        have : lengthSL (tailSL sl) < lengthSL sl := lengthSL_tailSL_lt_lengthSL sl (by
+          if h2: sl = nilSL then
+            rw [<-headSL_none_iff_nilSL] at h2
+            rw [h2] at h
+            contradiction
+          else
+            exact h2
+        )
+        dropWhileSL p tl
       else sl
 
     termination_by lengthSL sl
