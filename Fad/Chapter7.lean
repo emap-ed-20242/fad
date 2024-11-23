@@ -16,20 +16,22 @@ def foldr1' (f : a → a → a) (as : NonEmptyList a) : a :=
     have : as.val.length - 1 < as.val.length := by
       have h₁ := as.property; omega
     f x (foldr1' f (Subtype.mk as' (by
-      change as.val.tail.length > 0
+      -- change as.val.tail.length > 0
       have h₁ := as.property
       rw [List.length_tail]
       omega)))
 termination_by as.val.length
 
-#eval foldr1' (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
+example : foldr1' (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp)) = 21
+  := by simp [foldr1']
 
 def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | []    => default
   | [x]   => x
   | x::xs => f x (foldr1 f xs)
 
-#eval foldr1 (fun a b => a + b ) [1,2,3,4,5,6]
+example : foldr1 (fun a b => a + b ) [1,2,3,4,5,6] = 21
+  := by simp [foldr1]
 
 def minWith { a b : Type} [LE b] [Inhabited a] [DecidableRel (@LE.le b _)]
   (f : a → b) (as : List a) : a :=
