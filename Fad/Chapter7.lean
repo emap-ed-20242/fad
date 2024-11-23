@@ -7,7 +7,7 @@ namespace Chapter7
 def NonEmptyList (α : Type) : Type :=
  {l : List α // l.length > 0}
 
-def foldr1' (f : a → a → a) (as : NonEmptyList a) : a :=
+def foldr1₀ (f : a → a → a) (as : NonEmptyList a) : a :=
   let x := as.val.head (List.ne_nil_of_length_pos as.property)
   if h₂ : as.val.length = 1 then
     x
@@ -15,23 +15,32 @@ def foldr1' (f : a → a → a) (as : NonEmptyList a) : a :=
     let as' := as.val.tail
     have : as.val.length - 1 < as.val.length := by
       have h₁ := as.property; omega
-    f x (foldr1' f (Subtype.mk as' (by
+    f x (foldr1₀ f (Subtype.mk as' (by
       -- change as.val.tail.length > 0
       have h₁ := as.property
       rw [List.length_tail]
       omega)))
 termination_by as.val.length
 
-example : foldr1' (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp)) = 21
-  := by simp [foldr1']
+#eval foldr1₀ (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
+
+
+def foldr1₁ (f : a → a → a) (as : List a) (h : as.length > 0 := by decide) : a :=
+  let x := as.head (List.ne_nil_of_length_pos h)
+  if h₂ : as.length = 1 then
+    x
+  else
+    f x (foldr1₁ f as.tail (by rw [List.length_tail]; omega))
+
+#eval foldr1₁ (fun a b => a + b ) [1,2,3]
+
 
 def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | []    => default
   | [x]   => x
   | x::xs => f x (foldr1 f xs)
 
-example : foldr1 (fun a b => a + b ) [1,2,3,4,5,6] = 21
-  := by simp [foldr1]
+example : foldr1 (fun a b => a + b ) [1,2,3] = 6 := rfl
 
 def minWith { a b : Type} [LE b] [Inhabited a] [DecidableRel (@LE.le b _)]
   (f : a → b) (as : List a) : a :=
@@ -80,5 +89,6 @@ def gstep [LT a] [DecidableRel (@LT.lt a _)]
   (minWith ic) ∘ extend x
 
 #eval gstep 0 [7,1,2,3]
+
 
 end Chapter7
