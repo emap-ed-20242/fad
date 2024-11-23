@@ -20,10 +20,8 @@ pick [3, 1, 4]
 = minimum [(3, [1, 4]), (1, [3, 4]), (4, [3, 1])]
 = (1, [3, 4])
 
-O custo quadrático surge porque tanto a geração dos pares quanto a comparação para encontrar o menor elemento dependem do tamanho da lista de maneira acumulativa
-
-A função picks gasta tempo O(n^2) para gerar os pares
-A função minimum gasta O(n^2) para processar os pares
+O custo quadrático surge porque, a cada iteração, a função cria uma nova sublista removendo um elemento da lista original.
+ Como a criação de cada sublista envolve copiar elementos, o custo de recriar as sublistas aumenta linearmente a cada iteração, resultando em um custo total de O(n²)
 
 -/
 
@@ -57,6 +55,7 @@ def pick : List Nat → Option (Nat × List Nat)
 #eval pick [7]         -- Esperado: `some (7, [])`
 #eval pick [3, 1, 4]   -- Esperado: `some (1, [3, 4])`
 #eval pick [10, 20, 2, 5, 7] -- Esperado: `some (2, [10, 20, 5, 7])`
+
 
 -- Mesma função com mensagens de depuração (mais poluída)
 def pick2 : List Nat → Option (Nat × List Nat)
