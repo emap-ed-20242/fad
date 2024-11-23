@@ -225,6 +225,7 @@ theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.leng
   simp [splitInTwoSL, lengthSL]
   omega
 
+/-
 theorem lengthSL_initSL_lt_lengthSL : lengthSL sl > lengthSL ((initSL sl).get h) := by
   rw [Option.isSome_iff_exists] at h
   have ⟨isl, heq⟩ := h
@@ -294,7 +295,7 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
 
 example {a : Type} (x : a) : snoc x ∘ fromSL = fromSL ∘ snocSL x := by
  sorry
-
+-/
 
 end SL2
 
