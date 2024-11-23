@@ -4,23 +4,40 @@ namespace Chapter7
 
 -- 7.1 A generic greedy algorithm
 
--- 7.2 Greedy sorting algorithms
+def NonEmptyList (α : Type) : Type :=
+ {l : List α // l.length > 0}
+
+def foldr1' (f : a → a → a) (as : NonEmptyList a) : a :=
+  let x := as.val.head (List.ne_nil_of_length_pos as.property)
+  if h₂ : as.val.length = 1 then
+    x
+  else
+    let as' := as.val.tail
+    have : as.val.length - 1 < as.val.length := by
+      have h₁ := as.property; omega
+    f x (foldr1' f (Subtype.mk as' (by
+      change as.val.tail.length > 0
+      have h₁ := as.property
+      rw [List.length_tail]
+      omega)))
+termination_by as.val.length
+
+#eval foldr1' (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
 
 def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | []    => default
+  | [x]   => x
   | x::xs => f x (foldr1 f xs)
+
+#eval foldr1 (fun a b => a + b ) [1,2,3,4,5,6]
 
 def minWith { a b : Type} [LE b] [Inhabited a] [DecidableRel (@LE.le b _)]
   (f : a → b) (as : List a) : a :=
   let smaller f x y := if f x ≤ f y then x else y
   foldr1 (smaller f) as
 
-def candidates : List component → List candidate :=
-  minWith cost
 
-def mcc : List component → candidate :=
- minWith cost ∘ candidates
-
+-- 7.2 Greedy sorting algorithms
 
 open Chapter1 (tails) in
 
@@ -34,15 +51,32 @@ def pairs (xs : List a) : List (Prod a a) :=
     (tails ys).foldr step₂ acc
  (tails xs).foldr step₁ []
 
-#eval pairs [1,2,3]
+
+def ic [LT a] [DecidableRel (@LT.lt a _)]
+ (xs : List a) : Nat :=
+ (pairs xs).filter (λ p => p.1 > p.2) |>.length
 
 
+def extend : a → List a → List (List a)
+| x, []      => [[x]]
+| x, (y::xs)  => (x :: y :: xs) :: (extend x xs).map (y:: ·)
 
-def ic [Ord a] : List a → Nat
 
+open Chapter1 in
 
-def sort [Ord a] : List a → List a :=
- minWith ic ∘ perms
+def perms : List a → List (List a) :=
+ List.foldr (concatMap ∘ extend) [[]]
 
+def sort [LT a] [DecidableRel (@LT.lt a _)]
+  : List a → List a :=
+  minWith ic ∘ perms
+
+#eval sort [3, 1, 4, 2, 7, 4]
+
+def gstep [LT a] [DecidableRel (@LT.lt a _)]
+  (x : a) : List a → List a :=
+  (minWith ic) ∘ extend x
+
+#eval gstep 0 [7,1,2,3]
 
 end Chapter7

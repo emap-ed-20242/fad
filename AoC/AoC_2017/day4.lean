@@ -55,3 +55,5 @@ def countValid2 (phrs : List String) : Nat :=
   phrs.foldl (fun acc ph => if isValid2 ph then acc + 1 else acc) 0
 
 #eval countValid2 inpTask --167
+
+end AoC2017D4

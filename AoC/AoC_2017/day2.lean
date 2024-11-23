@@ -45,3 +45,5 @@ def checksum2 (sheet : List (List Nat)) : Nat :=
   sheet.foldl (fun acc rw => acc + divPair rw) 0
 
 #eval checksum2 sheet
+
+end AoC2017D2
