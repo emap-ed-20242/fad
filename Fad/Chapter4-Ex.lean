@@ -12,9 +12,54 @@ But for t = 1024 and f x = x^2 below f x = t and f (x + 1) > t
 #eval (fun x => dbg_trace "fun {x}"; x * x) 32
 #eval (fun x => dbg_trace "fun {x}"; x * x) 33
 
+
+/- 4.3
+
+Vamos provar por indução que
+
+T(x) = ⌈log(n-1)⌉.
+
+Para o caso base (n=2)
+
+T(2) = ⌈log(2-1)⌉ = ⌈log(1)⌉ = ⌈0⌉ = 0.
+
+Supondo valido para k < n, vamos provar para n. Como ⌈(n+1)/2⌉ < n,
+vale a hipotese de indução, então temos que provar que:
+
+T(n) = ⌈log(⌈(n+1)/2⌉ -1)⌉ + 1 = ⌈log(n-1)⌉.
+
+Podemos mostrar por desigualdade indireta, mostrando que o lado
+esquerdo é menor que k se e somente o lado direito é menor que k, para
+qualquer k natural.  Pelo lado direito temos que ⌈log(n-1)⌉ <= k <=>
+n-1 <= 2^k.  Pelo lado esquerdo:
+
+    ⌈log(⌈(n+1)/2⌉ -1)⌉ + 1 <= k <=> ⌈log(⌈(n+1)/2⌉ -1)⌉ <= k-1,
+                                 <=> log(⌈(n+1)/2⌉ -1) <= k-1,
+                                 <=> ⌈(n+1)/2⌉ -1 <= 2^(k-1),
+                                 <=> ⌈(n+1)/2⌉ <= 2^(k-1) + 1,
+                                 <=> (n+1)/2 <= 2^(k-1) + 1,
+                                 <=> n+1 <= 2^k + 2,
+                                 <=> n-1 <= 2^k.
+
+O que completa a prova, uma vez que ambos os lados chegam na mesma
+proposição.
+
+-/
+
+
 /- 4.4 : see the book -/
 
-/- 4.6 -/
+/-!
+# Exercicio 4.5
+
+Indexing the coordinates from zero, the positions are
+(0, 9), (5, 6), (7, 5), (9, 0)
+-/
+
+/-!
+# Exercicio 4.6
+
+-/
 
 #eval D2.search₁ (λ (x, y) => x ^ 3 + y ^ 3) 1729
 
@@ -113,6 +158,21 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
    | (us, vs, ws) => Tree1.Tree.node (mkTree₁ us) vs (mkTree₁ ws)
 
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
+
+
+/- 4.16 -/
+
+namespace Tree2
+
+def balanceL (t₁ : Tree a) (x : a) (t₂ : Tree a) : Tree a :=
+ match t₂ with
+ | Tree.null => Tree.null
+ | Tree.node _ l y r =>
+   if l.height ≥ t₁.height + 2
+   then balance (balanceL t₁ x l) y r
+   else balance (node t₁ x l) y r
+
+end Tree2
 
 /- 4.17 -/
 

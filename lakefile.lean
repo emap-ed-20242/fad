@@ -7,6 +7,10 @@ package "fad" where
 lean_lib «Fad» where
   -- add library configuration options here
 
+lean_lib «AoC» where
+  -- add library configuration options here
+
+
 @[default_target]
 lean_exe "fad" where
   root := `Main

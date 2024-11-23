@@ -194,19 +194,6 @@ def Tree.flatten : Tree a → List a
 | node l x r => l.flatten ++ [x] ++ r.flatten
 
 
-/- failed to synthesize decidable
-def search {a b : Type} [LT b] (f : a → b) : b → Tree a → Option a
-| _, Tree.null => none
-| k, Tree.node l x r =>
-  if f x < k then
-   search f k r
-  else
-   if f x = k then
-    some x
-   else
-    search f k l
--/
-
 def search (f : Nat → Nat) : Nat → Tree Nat → Option Nat
 | _, Tree.null => none
 | k, Tree.node l x r =>
@@ -268,7 +255,6 @@ def node (l : Tree α) (x : α) (r : Tree α): Tree α :=
   Tree.node h l x r
  where h := 1 + (max l.height r.height)
 
-
 def bias : Tree α → Int
 | .null => 0
 | .node _ l _ r => l.height - r.height
@@ -314,6 +300,16 @@ def mkTree [LT α] [DecidableRel (@LT.lt α _)]
  Chapter1.foldr insert (.null : Tree α)
 
 #eval mkTree (List.iota 20)
+
+
+def balanceR (t₁ : Tree α) (x : α) (t₂ : Tree α) : Tree α :=
+ match t₁ with
+ | Tree.null => Tree.null
+ | Tree.node _ l y r =>
+   if r.height ≥ t₂.height + 2
+   then balance l y (balanceR r x t₂)
+   else balance l y (node r x t₂)
+
 
 end Tree2
 
