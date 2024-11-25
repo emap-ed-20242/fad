@@ -1,10 +1,10 @@
 -- Intercalar duas listas
 def interleave {α : Type} : list α × list α → list (list α)
-| (xs, []) => [xs]
-| ([], ys) => [ys]
-| (x :: xs, y :: ys) :=
-    (interleave (xs, y :: ys)).map (λ zs, x :: zs) ++
-    (interleave (x :: xs, ys)).map (λ zs, y :: zs)
+| (xs, []) => [xs]  -- Caso a segunda lista esteja vazia
+| ([], ys) => [ys]  -- Caso a primeira lista esteja vazia
+| (x :: xs, y :: ys) =>
+    (interleave (xs, y :: ys)).map (λ zs : list α=> x :: zs) ++
+    (interleave (x :: xs, ys)).map (λ zs : list α=> y :: zs)
 
 -- Produto cartesiano de duas listas
 def cp {α β : Type} (xs : list α) (ys : list β) : list (α × β) :=
@@ -15,8 +15,7 @@ def split_at {α : Type} : ℕ → list α → list α × list α
 | 0, xs => ([], xs)
 | _n, [] => ([], [])
 | n, x :: xs =>
-  let (ys, zs) := split_at (n - 1) xs
-  in (x :: ys, zs)
+  let (ys, zs) := split_at (n - 1) xs in (x :: ys, zs)
 
 -- Calcular permutações
 def perms {α : Type} : list α → list (list α)
