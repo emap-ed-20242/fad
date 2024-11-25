@@ -21,7 +21,7 @@ def split_at {α : Type} : ℕ → list α → list α × list α
 def perms {α : Type} : list α → list (list α)
 | [] => [[]]
 | [x] => [[x]]
-| xs :=
+| xs  =>
     let n := xs.length / 2,
         (ys, zs) := split_at n xs,
         yss := perms ys,
