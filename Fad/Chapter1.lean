@@ -7,14 +7,14 @@ def map : (a → b) → List a → List b
 | _, [] => []
 | f, (x :: xs) => f x :: map f xs
 
-#eval map (· * 10) [1,2,3] = [10,20,30]
-#eval map (λ x => x * 10) [1,2,3] = [10,20,30]
+example : map (· * 10) [1,2,3] = [10,20,30] := rfl
+example : map (λ x => x * 10) [1,2,3] = [10,20,30] := rfl
 
 def filter {a : Type}  : (a → Bool) → List a → List a
 | _, [] => []
 | p, (x :: xs) => if p x then x :: filter p xs else filter p xs
 
-#eval filter (· > 5) [1,2,2,4,5,8,6]
+example : filter (· > 5) [1,2,2,4,5,8,6] = [8,6] := rfl
 
 def foldr {a b : Type} : (a → b → b) → b → List a → b
 | _, e, [] => e
@@ -243,7 +243,7 @@ theorem perm_aux {a : Type}
      unfold picks at h
      rw [picks.eq_1] at h
      rw [List.map.eq_1] at h
-     simp; simp at h; rw [h]; simp; done
+     simp; simp at h; rw [h]; done
   | cons x xs ih => sorry
 
 def perm : List a → List (List a)
