@@ -221,11 +221,13 @@ example : ∀ (as : SymList α), fromSL (tailSL as) = tail (fromSL as) := by
       . simp [tailSL, h, fromSL]
 
 
-theorem lengthSL_splitInTwoSL_eq_length : lengthSL (splitInTwoSL xs) = List.length xs := by
+theorem length_sl_eq_length (xs : List a)
+ : lengthSL (splitInTwoSL xs) = List.length xs := by
   simp [splitInTwoSL, lengthSL]
   omega
 
-theorem lengthSL_initSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : lengthSL sl > lengthSL (initSL sl) := by
+theorem length_init_lt_length (sl : SymList a) (h : sl ≠ nilSL)
+ : lengthSL sl > lengthSL (initSL sl) := by
   have ⟨lsl, rsl, _⟩ := sl
   unfold lengthSL initSL
   simp
@@ -239,13 +241,14 @@ theorem lengthSL_initSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : length
   omega
   by_cases hr2: rsl.length = 1 <;> simp [hr2]
   rw [<-lengthSL]
-  simp [lengthSL_splitInTwoSL_eq_length]
+  simp [length_sl_eq_length]
   refine @Nat.sub_one_lt_of_lt rsl.length 0 (by
     simp [<-List.length_eq_zero] at hr
     omega
   )
 
-theorem lengthSL_tailSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : lengthSL sl > lengthSL (tailSL sl) := by
+theorem length_tail_lt_length (sl : SymList a) (h : sl ≠ nilSL)
+ : lengthSL sl > lengthSL (tailSL sl) := by
   have ⟨lsl, rsl, _⟩ := sl
   unfold lengthSL tailSL
   simp
@@ -262,7 +265,7 @@ theorem lengthSL_tailSL_lt_lengthSL (sl : SymList a) (h : sl ≠ nilSL) : length
   exact List.length_lt_of_drop_ne_nil (h hl)
   by_cases hl2: lsl.length = 1 <;> simp [hl2]
   rw [<-lengthSL]
-  rw [lengthSL_splitInTwoSL_eq_length]
+  rw [length_sl_eq_length]
   simp
   refine @Nat.sub_one_lt_of_lt lsl.length 0 (by
     have : lsl.length ≠ 0 := by simp [hl]
@@ -273,14 +276,14 @@ def initsSL (sl : SymList a) : SymList (SymList a) :=
   if h: nullSL sl
   then snocSL sl nilSL
   else
-    have : lengthSL (initSL sl) < lengthSL sl := lengthSL_initSL_lt_lengthSL sl (by
+    have : lengthSL (initSL sl) < lengthSL sl := length_init_lt_length sl (by
       have ⟨lsl, rsl, _⟩ := sl
       simp [nullSL] at h
       simp [nilSL]
       exact h
     )
     snocSL sl (initsSL (initSL sl))
-      
+
   termination_by lengthSL sl
 
 theorem headSL_none_iff_nilSL: headSL sl = none ↔ sl = nilSL := by
@@ -309,7 +312,7 @@ theorem lengthSL_zero_iff_nilSL: lengthSL sl = 0 ↔ sl = nilSL := by
   rw [h]
   unfold nilSL lengthSL
   simp
-  
+
 def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
   if sl.lhs.isEmpty ∧ sl.rhs.isEmpty then nilSL else
     match h: headSL sl with
@@ -317,7 +320,7 @@ def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
     | some hsl =>
       if p hsl then
         let tl := tailSL sl
-        have : lengthSL (tailSL sl) < lengthSL sl := lengthSL_tailSL_lt_lengthSL sl (by
+        have : lengthSL (tailSL sl) < lengthSL sl := length_tail_lt_length sl (by
           if h2: sl = nilSL then
             rw [<-headSL_none_iff_nilSL] at h2
             rw [h2] at h
@@ -351,7 +354,7 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
 
 example {a : Type} (x : a) : snoc x ∘ fromSL = fromSL ∘ snocSL x := by
  sorry
--/
+
 
 end SL2
 
