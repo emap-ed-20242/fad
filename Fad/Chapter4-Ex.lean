@@ -139,6 +139,20 @@ example {α : Type} (t : Tree α) :
         _ = 2 ^ t.height : by rw max_comm
 
 
+/-
+# Exercise 4.9: Single-Traversal Partition
+-/
+
+def partition {α : Type} (p : α → Bool) : List α → List α × List α :=
+  let op (x : α) (r : List α × List α) :=
+   if p x then (x :: r.1, r.2) else (r.1, x :: r.2)
+  List.foldr op ([], [])
+
+#eval partition (. > 0) [1, -2, 3, 0, -5, 6]
+#eval partition (. % 2 = 0) [1, 2, 3, 4, 5]
+#eval partition (. = 'a') ['a', 'b', 'a', 'c']
+
+
 /- 4.10 -/
 
 def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=

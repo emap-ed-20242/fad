@@ -2,9 +2,29 @@ import Fad.Chapter5
 
 namespace Chapter5
 
+/-
+ # 5.2 : qsort definitions
+-/
+
+open Section51 in
+
+example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
+  induction xs with
+  | nil =>
+     unfold qsort₀
+     unfold qsort₁
+     unfold Function.comp
+     unfold mkTree
+     unfold Tree.flatten
+     rfl
+  | cons x xs ih =>
+    simp [qsort₀, qsort₁]
+    sorry
+
+
 /- 5.8 : see book -/
 
-/-! 
+/-!
 # Exercicio 5.19
 -/
 
