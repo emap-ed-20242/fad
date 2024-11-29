@@ -65,9 +65,18 @@ def applyCommand (grid : Grid α) (cmd : Command) (f : Action → α → α) : G
     else row)
 
 
-def countLit (f : α → Nat) (grid : Grid α) : Nat :=
+def count (f : α → Nat) (grid : Grid α) : Nat :=
   grid.foldl (λ acc row =>
     acc + row.foldl (λ acc2 light => acc2 + f light) 0) 0
+
+
+def grid2pgm (grid : Grid α) (f : α → Nat) : String :=
+  let ms := grid.map (λ r => r.map f |>.max? |>.getD 0)
+  let mt := ms.max? |>.getD 0
+  let header := ["P2", "# test ", "1000 1000", s!"{mt}"]
+  let fmt (line : List α) := String.intercalate " " (line.map (toString ∘ (mt - ·) ∘ f))
+  let lines := grid.map fmt
+  String.intercalate "\n" (header ++ lines)
 
 
 def solve (f : Action → α → α) : Grid α  → List Command → Grid α
@@ -86,7 +95,7 @@ def applyAction₁ : Action → Bool → Bool
  | Action.Toggle , l => ¬ l
  | _             , l => l
 
-#eval countLit (λ c => cond c 1 0) $ solve applyAction₁ initGrid₁ $ parseInstructions input
+-- #eval count (λ c => cond c 1 0) $ solve applyAction₁ initGrid₁ $ parseInstructions input
 
 -- Part 2
 
@@ -99,7 +108,7 @@ def applyAction₂ : Action → Nat → Nat
  | Action.Toggle , n => n + 2
  | _             , n => n
 
-
-#eval countLit id $ solve applyAction₂ initGrid₂ $ parseInstructions input
+-- #eval count id $ solve applyAction₂ initGrid₂ $ parseInstructions input
+-- #eval solve applyAction₂ initGrid₂ [{action := Action.TurnOn, x := (0, 0), y := (0, 0)}]
 
 end AoC2015D6
