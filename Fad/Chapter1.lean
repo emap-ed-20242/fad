@@ -127,17 +127,21 @@ def scanr : (a → b → b) → b → List a → List b
   | [] => []
   | qs@(q :: _) => f x q :: qs
 
+/-
 #eval scanr Nat.add 0 [1,2,3,4]
 #eval scanr Nat.add 42 []
+-/
 
 def scanl : (b → a → b ) → b → List a → List b
 | _, e, [] => [e]
 | f, e, (x :: xs) => e :: scanl f (f e x) xs
 
+/-
 #eval scanl Nat.add 0 [1,2,3,4]
 #eval scanl Nat.add 42 []
 #eval scanl (λ r n => n :: r)
   "foo".toList ['a', 'b', 'c', 'd'] |>.map List.asString
+-/
 
 def inits {a : Type} : List a → List (List a)
 | [] => [[]]
@@ -184,12 +188,12 @@ def inserts {a : Type} : a → List a → List (List a)
 | x, [] => [[x]]
 | x, (y :: ys) => (x :: y :: ys) :: map (y :: ·) (inserts x ys)
 
-#eval inserts 1 [2,3,4,5]
+-- #eval inserts 1 [2,3,4,5]
 
 def concatMap (f : a → List b) : List a → List b :=
  concat1 ∘ (List.map f)
 
-#eval concatMap (String.toList ·) ["aa", "bb", "cc"]
+-- #eval concatMap (String.toList ·) ["aa", "bb", "cc"]
 
 
 def perm₀ : List a → List (List a)
@@ -203,7 +207,7 @@ def perm₁ : List a → List (List a) := foldr step [[]]
 def perm₁' : List a → List (List a) :=
   foldr (concatMap ∘ inserts) [[]]
 
-#eval perm₁ [1,2]
+-- #eval perm₁ [1,2]
 
 def picks {a : Type} : List a → List (a × List a)
 | [] => []
@@ -262,7 +266,7 @@ partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
 
 partial def while' (p : a → Bool) := until' (not ∘ p)
 
-#eval until' (· > 10) (· + 1) 0
+-- #eval until' (· > 10) (· + 1) 0
 
 
 -- 1.4 Fusion
@@ -369,10 +373,11 @@ def collapse₃ (xss : List (List Int)) : List Int :=
       if s > 0 then f
       else help (s + as.1, f ∘ (as.2 ++ ·)) bs
 
+/-
 #eval collapse₃ [[1],[-3],[2,4]]
 #eval collapse₃ [[-2,1],[-3],[2,4]]
 #eval collapse₃ [[-2,1],[3],[2,4]]
-
+-/
 
 def fib : Nat → Nat
   | 0     => 1
@@ -391,9 +396,11 @@ where
   | 0   => (0, 1)
   | n+1 => let p := loop n; (p.2, p.1 + p.2)
 
+/-
 #eval fibFast 100
 #reduce fib 100 -- try eval
 #print fib
+-/
 
 example : fibFast 4 = 5 := by
   unfold fibFast

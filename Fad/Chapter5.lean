@@ -24,7 +24,7 @@ def Tree.flatten : Tree a → List a
 
 def qsort₀ := Tree.flatten ∘ mkTree
 
-#eval qsort₀ (List.iota 1000) |>.length
+-- #eval qsort₀ (List.iota 1000) |>.length
 
 
 partial def qsort₁ [LT a] [DecidableRel (· < · : a → a → Prop)]
@@ -34,8 +34,10 @@ partial def qsort₁ [LT a] [DecidableRel (· < · : a → a → Prop)]
   let p := xs.partition (· < x)
   (qsort₁ p.1) ++ [x] ++ (qsort₁ p.2)
 
+/-
 #check qsort₁ [1,2,3,4,5]
 #eval qsort₁ ['a','b','a']
+-/
 
 structure Person where
   name : String
@@ -82,7 +84,7 @@ def halve₀ (xs : List a) : (List a × List a) :=
  let m := xs.length / 2
  (xs.take m,xs.drop m)
 
-#eval halve₀ [1,2,3,4,5,6,7,8,9,10]
+-- #eval halve₀ [1,2,3,4,5,6,7,8,9,10]
 
 def halve₁ : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
@@ -150,10 +152,11 @@ def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)] : List a → L
 
  termination_by xs => xs.length
 
+/-
 #eval msort₁ [5,3,4,2,1,1]
 #eval msort₁ [1,2,3,4,5]
 #eval msort₁ ['a','b','a']
-
+-/
 
 end S52
 

@@ -18,7 +18,7 @@ namespace SL1
 
 abbrev SymList (α : Type u) := (List α) × (List α)
 
-#check ([],[])
+-- #check ([],[])
 
 def nilSL : SymList a := ([], [])
 
@@ -37,13 +37,13 @@ def toSL : List a → SymList a
  | [] => nilSL
  | x :: xs => consSL x (toSL xs)
 
-#eval fromSL $ consSL 4 $ consSL 3 $ consSL 2 $ consSL 1 nilSL
-#eval toSL (List.iota 20)
+-- #eval fromSL $ consSL 4 $ consSL 3 $ consSL 2 $ consSL 1 nilSL
+-- #eval toSL (List.iota 20)
 
 def lastSL : SymList a → Option a
 | (xs, ys) => if ys.isEmpty then xs.head? else ys.head?
 
-#eval snocSL 20 (snocSL 10 (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))))
+-- #eval snocSL 20 (snocSL 10 (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))))
 
 def tailSL (sl : SymList a) : Option (SymList a) :=
  match sl with
@@ -54,12 +54,14 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
    some (reverse vs, us)
  | (xs,       ys) => some (tail xs, ys)
 
+/- 
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
 #eval do
  let a ← tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
  pure $ fromSL a
 
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))) >>= pure ∘ fromSL
+-/
 
 end SL1
 
@@ -70,15 +72,17 @@ end SL1
  estrutura.
 -/
 
+/-
 #check ([] : List Nat)
 #eval ([] : List Nat).head?
 #eval [1,2].head?
 
--- #eval [].head (by simp)
+#eval [].head (by simp)
 #eval [1,2].head (by simp)
 
 def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 #eval test [1, 2, 3, 4] (by simp)
+-/
 
 
 namespace SL2
@@ -143,12 +147,13 @@ def p (h : List Nat) : Prop := h.length = 3
 def test₁ := (@Subtype.mk _ p [1,2,3] (by simp [p]))
 def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
 
+/-
 #check p [1,2,3]
 #eval test₁.val
 #check test₁.property
 #check List.splitInTwo test₁
 #check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
-
+-/
 
 def splitInTwoSL (xs : List a) : SymList a :=
   let p := List.splitInTwo (Subtype.mk xs (by rfl))
@@ -190,12 +195,14 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
        have a :: [] := ys
        simp at *))
 
+/-
 #eval fromSL $ SymList.mk [1] [3,2] (by simp)
 #eval fromSL $ tailSL $ SymList.mk [1] [3,2] (by simp)
 #eval fromSL $ initSL $ SymList.mk [1] [3,2] (by simp)
 
 #check (fromSL ∘ tailSL : SymList Nat → List Nat)
 #check (tail ∘ fromSL : SymList Nat → List Nat)
+-/
 
 example : ∀ (as : SymList α), fromSL (tailSL as) = tail (fromSL as) := by
   intro sl
@@ -365,9 +372,10 @@ def fetch : Nat → List a → Option a
  | _, [] => none
  | k, x::xs => if k = 0 then x else fetch (k - 1) xs
 
+/-
 #eval [1,2,3,4].get? 2
 #eval fetch 2 [1,2,3,4]
-
+-/
 
 inductive Tree (α : Type) : Type where
  | leaf (n : α) : Tree α
@@ -394,7 +402,7 @@ def Tree.mk (t₁ t₂ : Tree a) : Tree a :=
 
 open Tree
 
-#eval mk (mk (leaf 'a') (leaf 'b')) (mk (leaf 'c') (leaf 'd'))
+-- #eval mk (mk (leaf 'a') (leaf 'b')) (mk (leaf 'c') (leaf 'd'))
 
 inductive Digit (a : Type) : Type where
  | zero : Digit a
@@ -413,7 +421,7 @@ open Digit
 -- works with def too
 abbrev RAList (a : Type) : Type := List (Digit a)
 
-#check ([Digit.zero, Digit.zero] : RAList Nat)
+-- #check ([Digit.zero, Digit.zero] : RAList Nat)
 
 def concat1 {a : Type} : List (List a) → List a :=
  List.foldr List.append []
@@ -433,11 +441,12 @@ def fromRA : RAList a → List a :=
    | Digit.zero => []
    | Digit.one t => fromT t
 
+/-
 #eval fromRA [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]
-
+-/
 
 def fetchT [ToString a] (n : Nat) (t : Tree a) : Option a :=
  match n, t with
@@ -454,11 +463,12 @@ def fetchRA [ToString a] (n : Nat) (ra : RAList a) : Option a :=
  | k, (one t :: xs) =>
    if k < size t then fetchT k t else fetchRA (k - size t) xs
 
+/-
 #eval fetchRA 10 [zero,
         one (mk (leaf 'a') (leaf 'b')),
         one (mk (mk (leaf 'c') (leaf 'd'))
                 (mk (leaf 'e') (leaf 'f')))]
-
+-/
 
 def nilRA {a : Type} : RAList a := []
 
