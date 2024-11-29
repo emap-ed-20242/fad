@@ -1,101 +1,105 @@
+import Std.Internal.Parsec
+
 -- Problem: https://adventofcode.com/2015/day/6
 
 namespace AoC2015D6
 
-def input_day6 : String := include_str "../../data/AoC2015_day6.txt"
+open Std.Internal.Parsec
+open Std.Internal.Parsec.String
 
-def split_by_new_line (s : String) : List String :=
-  s.split (· == '\n')
+def content : String := include_str "../../data/AoC2015_day6.txt"
 
-def input_task := split_by_new_line input_day6
+def input := content.split (· == '\n') |>.filter (· ≠ "")
+
+-- utils
+
+inductive Action where
+  | TurnOn
+  | TurnOff
+  | Toggle
+  | Invalid
+deriving Repr
+
+structure Command where
+ action : Action
+ x : Nat × Nat
+ y : Nat × Nat
+deriving Repr
+
+
+def Grid (α : Type) : Type := List (List α)
+
+def parseCommand : Parser Command := do
+ let a ← pstring "turn on" <|> pstring "turn off" <|> pstring "toggle"
+ let _ ← pstring " "
+ let x1 ← digits <* pstring ","
+ let x2 ← digits <* pstring " through "
+ let y1 ← digits <* pstring ","
+ let y2 ← digits
+ return { action := match a with
+                    | "turn on"  => Action.TurnOn
+                    | "turn off" => Action.TurnOff
+                    | "toggle"   => Action.Toggle
+                    | _          => Action.Invalid,
+          x := (x1, x2),
+          y := (y1, y2) }
+
+-- #eval parseCommand "toggle 223,39 through 454,511".mkIterator
+
+def parseInstructions (is : List String) : List Command :=
+  let p := Std.Internal.Parsec.String.Parser.run parseCommand
+  let d := { action := Action.Invalid, x := (0, 0), y := (0, 0) }
+  is.map
+    (λ i => match p i with
+            | Except.ok c => c
+            | Except.error _ => d)
+
+
+def applyCommand (grid : Grid α) (cmd : Command) (f : Action → α → α) : Grid α :=
+  grid.enum.map (λ ⟨i, row⟩ =>
+    if cmd.x.1 ≤ i ∧ i ≤ cmd.y.1 then
+      row.enum.map (λ ⟨j, light⟩ =>
+        if cmd.x.2 ≤ j ∧ j ≤ cmd.y.2 then
+          f cmd.action light
+        else light)
+    else row)
+
+
+def countLit (f : α → Nat) (grid : Grid α) : Nat :=
+  grid.foldl (λ acc row =>
+    acc + row.foldl (λ acc2 light => acc2 + f light) 0) 0
+
+
+def solve (f : Action → α → α) : Grid α  → List Command → Grid α
+| g, [] => g
+| g, (c::cs) => solve f (applyCommand g c f) cs
+
 
 -- Part 1
 
-def initial_grid : List (List Bool) :=
+def initGrid₁ : Grid Bool :=
   List.replicate 1000 (List.replicate 1000 false)
 
-def apply_action (grid : List (List Bool))
-                 (action : String)
-                 (x1 y1 x2 y2 : Nat) :
-                 List (List Bool) :=
-  grid.enum.map (λ ⟨i, row⟩ =>
-    if x1 ≤ i ∧ i ≤ x2 then
-      row.enum.map (λ ⟨j, light⟩ =>
-        if y1 ≤ j ∧ j ≤ y2 then
-          match action with
-          | "turn on"  => true
-          | "turn off" => false
-          | "toggle"   => ¬ light
-          | _          => light
-        else light)
-    else row)
+def applyAction₁ : Action → Bool → Bool
+ | Action.TurnOn , _ => true
+ | Action.TurnOff, _ => false
+ | Action.Toggle , l => ¬ l
+ | _             , l => l
 
-def count_lights (grid : List (List Bool)) : Nat :=
-  grid.foldl (λ acc row =>
-    acc + row.foldl (λ acc2 light =>
-      acc2 + if light then 1 else 0) 0) 0
+#eval countLit (λ c => cond c 1 0) $ solve applyAction₁ initGrid₁ $ parseInstructions input
 
-def solve (instructions : List (String × Nat × Nat × Nat × Nat)) : Nat :=
-  let
-    final_grid := instructions.foldl (λ grid instruction =>
-      apply_action grid instruction.1
-                        instruction.2.1
-                        instruction.2.2.1
-                        instruction.2.2.2.1
-                        instruction.2.2.2.2) initial_grid
-  count_lights final_grid
+-- Part 2
 
-def parse_instruction (instr : String) : (String × Nat × Nat × Nat × Nat) :=
-  let parts := instr.splitOn " "
-  match parts with
-  | ["turn", "on", x1, ",", y1, "through", x2, ",", y2] =>
-      ("turn on", x1.toNat!, y1.toNat!, x2.toNat!, y2.toNat!)
-  | ["turn", "off", x1, ",", y1, "through", x2, ",", y2] =>
-      ("turn off", x1.toNat!, y1.toNat!, x2.toNat!, y2.toNat!)
-  | ["toggle", x1, ",", y1, "through", x2, ",", y2] =>
-      ("toggle", x1.toNat!, y1.toNat!, x2.toNat!, y2.toNat!)
-  | _ => ("", 0, 0, 0, 0)
-
-
-def parsed_instructions : List (String × Nat × Nat × Nat × Nat) :=
-  (input_task.map (λ s => s.replace "," " , ")).map parse_instruction
-
-#eval solve parsed_instructions
-
--- Part 2:
-
-def initial_grid₂ : List (List Nat) :=
+def initGrid₂ : Grid Nat :=
   List.replicate 1000 (List.replicate 1000 0)
 
-def count_brightness (grid : List (List Nat)) : Nat :=
-  grid.foldl (λ acc row => acc + row.foldl (λ acc2 light => acc2 + light) 0) 0
+def applyAction₂ : Action → Nat → Nat
+ | Action.TurnOn , n => n + 1
+ | Action.TurnOff, n => n - 1
+ | Action.Toggle , n => n + 2
+ | _             , n => n
 
-def apply_action₂ (grid : List (List Nat))
-                  (action : String)
-                  (x1 y1 x2 y2 : Nat) :
-                  List (List Nat) :=
-  grid.enum.map (λ ⟨i, row⟩ =>
-    if x1 ≤ i ∧ i ≤ x2 then
-      row.enum.map (λ ⟨j, light⟩ =>
-        if y1 ≤ j ∧ j ≤ y2 then
-          match action with
-          | "turn on"  => light + 1
-          | "turn off" => light - 1
-          | "toggle"   => light + 2
-          | _          => light
-        else light)
-    else row)
 
-def solve₂ (instructions : List (String × Nat × Nat × Nat × Nat)) : Nat :=
-  let
-    final_grid := instructions.foldl (λ grid instruction =>
-      apply_action₂ grid instruction.1
-                         instruction.2.1
-                         instruction.2.2.1
-                         instruction.2.2.2.1
-                         instruction.2.2.2.2) initial_grid₂
-  count_brightness final_grid
-
-#eval solve₂ parsed_instructions
+#eval countLit id $ solve applyAction₂ initGrid₂ $ parseInstructions input
 
 end AoC2015D6
