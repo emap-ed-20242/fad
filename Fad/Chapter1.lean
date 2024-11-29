@@ -130,9 +130,10 @@ def scanr : (a → b → b) → b → List a → List b
   | [] => []
   | qs@(q :: _) => f x q :: qs
 
+/-
 #eval scanr Nat.add 0 [1,2,3,4]
 #eval scanr Nat.add 42 []
-
+-/
 
 def scanl : (b → a → b ) → b → List a → List b
 | _, e, [] => [e]
