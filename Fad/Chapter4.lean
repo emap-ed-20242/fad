@@ -308,7 +308,6 @@ def balanceR (t₁ : Tree α) (x : α) (t₂ : Tree α) : Tree α :=
    then balance l y (balanceR r x t₂)
    else balance l y (node r x t₂)
 
-
 end Tree2
 
 end Chapter4

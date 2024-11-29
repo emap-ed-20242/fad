@@ -1,42 +1,47 @@
 
 namespace Chapter5
 
--- 5.1 Quicksort
-namespace S51
+namespace Section51
 
 inductive Tree a where
 | null : Tree a
 | node : (Tree a) → a → (Tree a) → Tree a
 
-def mkTree : List Nat → Tree Nat
+def mkTree [LT a] [DecidableRel (α := a) (· < ·)] : List a → Tree a
 | [] => Tree.null
 | x :: xs =>
-  let p := xs.partition (λ y => decide (y < x))
+  let p := xs.partition (. < x)
   Tree.node (mkTree p.1) x (mkTree p.2)
  termination_by l => l.length
  decreasing_by
-  all_goals simp [List.partition_eq_filter_filter,
-   List.length_filter_le, Nat.lt_add_one_of_le]
+  all_goals simp
+   [List.partition_eq_filter_filter,
+    List.length_filter_le,
+    Nat.lt_add_one_of_le]
 
 def Tree.flatten : Tree a → List a
 | null => []
 | node l x r => l.flatten ++ [x] ++ r.flatten
 
-def qsort₀ := Tree.flatten ∘ mkTree
+def qsort₀ [LT a] [DecidableRel (α := a) (· < ·)] : List a → List a :=
+ Tree.flatten ∘ mkTree
 
--- #eval qsort₀ (List.iota 1000) |>.length
-
-
-partial def qsort₁ [LT a] [DecidableRel (· < · : a → a → Prop)]
- : List a → List a
+def qsort₁ [h₁ : LT a] [h₂ : DecidableRel (α := a) (· < ·)] : List a → List a
  | [] => []
  | (x :: xs) =>
   let p := xs.partition (· < x)
   (qsort₁ p.1) ++ [x] ++ (qsort₁ p.2)
+ termination_by xs => xs.length
+ decreasing_by
+  all_goals simp
+   [List.partition_eq_filter_filter,
+    List.length_filter_le,
+    Nat.lt_add_one_of_le]
 
 /-
-#check qsort₁ [1,2,3,4,5]
-#eval qsort₁ ['a','b','a']
+#eval qsort₀ (List.iota 145)
+#eval qsort₁ (List.iota 145)
+#eval qsort₁ ['c','b','a']
 -/
 
 structure Person where
@@ -51,8 +56,9 @@ def people := [
   Person.mk "Bob" 25,
   Person.mk "Eve" 22]
 
--- #eval qsort₁ people (how to prove decidability of Person.lt?)
-end S51
+-- #eval qsort₁ people (how to fix this? PENDING)
+
+end Section51
 
 -- 5.2 Mergesort
 namespace S52
@@ -83,8 +89,6 @@ def flatten [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
 def halve₀ (xs : List a) : (List a × List a) :=
  let m := xs.length / 2
  (xs.take m,xs.drop m)
-
--- #eval halve₀ [1,2,3,4,5,6,7,8,9,10]
 
 def halve₁ : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
