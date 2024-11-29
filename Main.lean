@@ -8,10 +8,10 @@ def main : IO Unit :=
 
 open AoC2015D6 in
 
-def main : IO Unit :=
+def main : IO Unit := do
   let c  := parseInstructions input
   let c₁ := solve applyAction₁ initGrid₁ c
   let c₂ := solve applyAction₂ initGrid₂ c
-  -- IO.println s!"c₁: {count (λ c => cond c 1 0) c₁} c₂: {count id c₂}"
+  IO.println s!"c₁: {count (λ c => cond c 1 0) c₁} c₂: {count id c₂}"
   IO.FS.writeFile (System.FilePath.mk "day6-1.pgm") (grid2pgm c₁ (λ c => cond c 0 1))
-  -- IO.FS.writeFile (System.FilePath.mk "day6-2.pgm") (grid2pgm c₂ id)
+  IO.FS.writeFile (System.FilePath.mk "day6-2.pgm") (grid2pgm c₂ id)

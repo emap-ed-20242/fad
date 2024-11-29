@@ -76,7 +76,7 @@ def grid2pgm (grid : Grid α) (f : α → Nat) : String :=
   let header := ["P2", "# test ", "1000 1000", s!"{mt}"]
   let fmt (line : List α) := String.intercalate " " (line.map (toString ∘ (mt - ·) ∘ f))
   let lines := grid.map fmt
-  String.intercalate "\n" (header ++ lines)
+  String.intercalate "\n" (header ++ lines) ++ "\n"
 
 
 def solve (f : Action → α → α) : Grid α  → List Command → Grid α
