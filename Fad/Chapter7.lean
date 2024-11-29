@@ -22,8 +22,7 @@ def foldr1₀ (f : a → a → a) (as : NonEmptyList a) : a :=
       omega)))
 termination_by as.val.length
 
-#eval foldr1₀ (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
-
+-- #eval foldr1₀ (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
 
 def foldr1₁ (f : a → a → a) (as : List a) (h : as.length > 0 := by decide) : a :=
   let x := as.head (List.ne_nil_of_length_pos h)
@@ -32,8 +31,7 @@ def foldr1₁ (f : a → a → a) (as : List a) (h : as.length > 0 := by decide)
   else
     f x (foldr1₁ f as.tail (by rw [List.length_tail]; omega))
 
-#eval foldr1₁ (fun a b => a + b ) [1,2,3]
-
+-- #eval foldr1₁ (fun a b => a + b ) [1,2,3]
 
 def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | []    => default
@@ -82,13 +80,13 @@ def sort [LT a] [DecidableRel (@LT.lt a _)]
   : List a → List a :=
   minWith ic ∘ perms
 
-#eval sort [3, 1, 4, 2, 7, 4]
+-- #eval sort [3, 1, 4, 2, 7, 4]
 
 def gstep [LT a] [DecidableRel (@LT.lt a _)]
   (x : a) : List a → List a :=
   (minWith ic) ∘ extend x
 
-#eval gstep 0 [7,1,2,3]
+-- #eval gstep 0 [7,1,2,3]
 
 
 end Chapter7

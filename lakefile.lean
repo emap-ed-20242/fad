@@ -10,6 +10,7 @@ lean_lib «Fad» where
 lean_lib «AoC» where
   -- add library configuration options here
 
+require "leanprover-community" / "mathlib"
 
 @[default_target]
 lean_exe "fad" where
