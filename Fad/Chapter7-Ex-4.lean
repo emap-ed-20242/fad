@@ -1,10 +1,12 @@
 -- Intercalar duas listas
-def interleave {α : Type} : list α × list α → list (list α)
-| (xs, []) => [xs]  -- Caso a segunda lista esteja vazia
-| ([], ys) => [ys]  -- Caso a primeira lista esteja vazia
-| (x :: xs, y :: ys) =>
-    (interleave (xs, y :: ys)).map (λ zs : list α=> x :: zs) ++
-    (interleave (x :: xs, ys)).map (λ zs : list α=> y :: zs)
+def interleave {α : Type} : list α → list α → list (list α)
+| [], []            => [[]]  -- Caso base: ambas as listas estão vazias
+| xs, []            => [xs]  -- Caso a segunda lista esteja vazia
+| [], ys            => [ys]  -- Caso a primeira lista esteja vazia
+| x :: xs, y :: ys  =>
+    let left : list (list α) := (interleave xs (y :: ys)).map (λ zs => x :: zs)
+    let right : list (list α) := (interleave (x :: xs) ys).map (λ zs => y :: zs)
+    left ++ right
 
 -- Produto cartesiano de duas listas
 def cp {α β : Type} (xs : list α) (ys : list β) : list (α × β) :=
