@@ -89,4 +89,26 @@ def gstep [LT a] [DecidableRel (@LT.lt a _)]
 -- #eval gstep 0 [7,1,2,3]
 
 
+def picks (xs : List a) : List (a × List a) :=
+  let rec helper : a → List (a × List a) → List (a × List a)
+   | _, []                => []
+   | x, ((y, ys) :: rest) => (y, x :: ys) :: (helper x rest)
+  match xs with
+  | []      => []
+  | x :: xs => (x, xs) :: helper x (picks xs)
+
+
+def pick [LE a] [h : DecidableRel (α := a) (· ≤ ·)] [Inhabited a]
+ (xs : List a) : (a × List a) :=
+  match picks xs with
+  | []      => (default, []) -- unreachable
+  | [p]     => p
+  | p :: ps =>
+    let rec aux : (a × List a) → List (a × List a) → (a × List a)
+     | (x, xs), []              => (x, xs)
+     | (x, xs), (y, ys) :: rest =>
+       if x ≤ y then aux (x, xs) rest else aux (y, ys) rest
+    aux p ps
+
+
 end Chapter7
