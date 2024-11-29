@@ -114,11 +114,11 @@ example : ∀ xs : List Nat, foldr cons [] xs = xs := by
   | cons a as ih => unfold foldr; rewrite [ih]; rfl
 
 
-def scanr₀ : (a → b → b) → b → List a → List b
-| _, q₀, [] => [q₀]
+def scanr₀ : (a → b → b) → b → List a → {l : List b // l ≠ []}
+| _, q₀, [] => Subtype.mk [q₀] (by simp)
 | f, q₀, (x :: xs) =>
   let qs := scanr₀ f q₀ xs
-  f x (List.head qs (by sorry)) :: qs
+  Subtype.mk (f x (List.head qs qs.property) :: qs) (by simp)
 
 def scanr : (a → b → b) → b → List a → List b
 | _, q₀, [] => [q₀]
