@@ -30,6 +30,6 @@ def perms {α : Type} : list α → list (list α)
         zss := perms zs in
     (cp yss zss).bind (λ (yz : list α × list α), interleave yz.1 yz.2)
 
--- Teste
+/- Teste
 #eval perms [1, 2, 3]
-
+-/
