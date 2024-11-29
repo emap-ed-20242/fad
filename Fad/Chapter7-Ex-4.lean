@@ -4,18 +4,18 @@ def interleave {α : Type} : list α → list α → list (list α)
 | xs, []            => [xs]  -- Caso a segunda lista esteja vazia
 | [], ys            => [ys]  -- Caso a primeira lista esteja vazia
 | x :: xs, y :: ys  =>
-    let left : list (list α) := (interleave xs (y :: ys)).map (λ zs => x :: zs)
-    let right : list (list α) := (interleave (x :: xs) ys).map (λ zs => y :: zs)
+    let left := (interleave xs (y :: ys)).map (λ zs => x :: zs)
+    let right := (interleave (x :: xs) ys).map (λ zs => y :: zs)
     left ++ right
 
 -- Produto cartesiano de duas listas
-def cp {α β : Type} (xs : list α) (ys : list β) : list (α × β) :=
-xs.bind (λ x => ys.map (λ y=> (x, y)))
+def cp {α β : Type} (xs : list α) (ys : list β) : list (list (α × β)) :=
+xs.bind (λ x => ys.map (λ y => [(x, y)]))
 
 -- Dividir uma lista ao meio
 def split_at {α : Type} : ℕ → list α → list α × list α
 | 0, xs => ([], xs)
-| _n, [] => ([], [])
+| _, [] => ([], [])
 | n, x :: xs =>
   let (ys, zs) := split_at (n - 1) xs in (x :: ys, zs)
 
@@ -28,7 +28,8 @@ def perms {α : Type} : list α → list (list α)
         (ys, zs) := split_at n xs,
         yss := perms ys,
         zss := perms zs in
-    (cp yss zss).bind (λ (yz : list α × list α), interleave yz)
+    (cp yss zss).bind (λ (yz : list α × list α), interleave yz.1 yz.2)
 
 -- Teste
 #eval perms [1, 2, 3]
+
