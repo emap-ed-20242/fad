@@ -59,11 +59,10 @@ partial def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
  where
   x := smallest f t (bound f t)
 
-#eval bound (fun x => dbg_trace "fun {x}"; x * x) 1024
-
-#eval search₁ (fun x => dbg_trace "fun {x}"; x * x) 1024
+-- #eval bound (fun x => dbg_trace "fun {x}"; x * x) 1024
+-- #eval search₁ (fun x => dbg_trace "fun {x}"; x * x) 1024
 -- #eval search₂ (fun x => dbg_trace "fun {x}"; x * x) 2025
-#eval search₃ (fun x => dbg_trace "fun {x}"; x * x) 2025
+-- #eval search₃ (fun x => dbg_trace "fun {x}"; x * x) 2025
 
 end D1
 
@@ -78,7 +77,7 @@ def search₀ (f : (Nat × Nat) → Nat) (t : Nat) : List (Nat × Nat) :=
   as := (List.range $ t + 1)
   ps := Chapter1.concatMap (λ x => as.map (λ y => (x, y))) as
 
-#eval search₀ (λ p => dbg_trace "fun {p}"; p.1 + p.2) 5
+-- #eval search₀ (λ p => dbg_trace "fun {p}"; p.1 + p.2) 5
 
 /- https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/.E2.9C.94.20proof.20termination -/
 
@@ -100,10 +99,10 @@ where
       | y + 1 => searchIn x y sofar
   termination_by (t + 1 - x, y)
 
-#eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x + y) 5
-#eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x^2 + 3^y) 12
-#eval search₁ (λ (x, y) => x^2 + 3^y) 2223
-#eval search₁ (λ (x, y) => x^2 + 3^y) 20259
+-- #eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x + y) 5
+-- #eval search₁ (λ (x, y) => dbg_trace "fun {x} {y}"; x^2 + 3^y) 12
+-- #eval search₁ (λ (x, y) => x^2 + 3^y) 2223
+-- #eval search₁ (λ (x, y) => x^2 + 3^y) 20259
 
 
 partial def helper (t : Nat) (f : Nat × Nat → Nat)
@@ -150,8 +149,8 @@ def scale (a : Array Int) (c : Int) : Array Int := Id.run do
    b := b.push (c * a[i])
   return b
 
-#eval scale #[1,2,3,4] 4
-#eval for i in [0:12] do println! i
+-- #eval scale #[1,2,3,4] 4
+-- #eval for i in [0:12] do println! i
 
 def myhead₁ (xs : List a) (h : xs.length ≠ 0) : a :=
  match xs with
@@ -222,7 +221,7 @@ def mkTree : List Nat → Tree Nat
          List.length_filter_le, Nat.lt_add_one_of_le]
 
 
-#eval mkTree (List.iota 20)
+-- #eval mkTree (List.iota 20)
 
 end Tree1
 
@@ -299,8 +298,7 @@ def mkTree [LT α] [DecidableRel (@LT.lt α _)]
  : (xs : List α) → Tree α :=
  Chapter1.foldr insert (.null : Tree α)
 
-#eval mkTree (List.iota 20)
-
+-- #eval mkTree (List.iota 20)
 
 def balanceR (t₁ : Tree α) (x : α) (t₂ : Tree α) : Tree α :=
  match t₁ with
