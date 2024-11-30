@@ -1,7 +1,7 @@
 
 namespace Chapter5
 
-namespace Section51
+namespace S51 -- Quicksort
 
 inductive Tree a where
 | null : Tree a
@@ -58,10 +58,9 @@ def people := [
 
 -- #eval qsort₁ people (how to fix this? PENDING)
 
-end Section51
+end S51
 
--- 5.2 Mergesort
-namespace S52
+namespace S52 -- Mergesort
 
 inductive Tree (α : Type) : Type where
  | null : Tree α
@@ -69,7 +68,7 @@ inductive Tree (α : Type) : Type where
  | node : Tree α → Tree α → Tree α
  deriving Repr, Inhabited
 
-def merge [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
+def merge [LE a] [DecidableRel (α := a) (· ≤ ·)]
 : List a → List a → List a
 | [], ys => ys
 | xs, [] => xs
@@ -163,5 +162,18 @@ def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)] : List a → L
 -/
 
 end S52
+
+namespace S53 -- Heapsort
+
+inductive Tree (α : Type): Type where
+ | null : Tree α
+ | node : α → Tree α → Tree α → Tree α
+ deriving Repr, Inhabited
+
+def flatten [LE a] [DecidableRel (α := a) (· ≤ ·)] : Tree a → List a
+| Tree.null       => []
+| Tree.node x u v => x :: S52.merge (flatten u) (flatten v)
+
+end S53
 
 end Chapter5

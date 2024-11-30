@@ -6,7 +6,7 @@ namespace Chapter5
  # 5.2 : qsort definitions
 -/
 
-open Section51 in
+open S51 in
 
 example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
   induction xs with
@@ -24,9 +24,52 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
 
 /- 5.8 : see book -/
 
-/-!
-# Exercicio 5.19
--/
+
+/- # Exercicio 5.13 -/
+
+namespace S53
+
+def split₀ [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
+ (xs: List a) : (a × List a × List a) :=
+  let h := xs.headD default
+  let p := xs.tail.partition (fun x => x ≤ h)
+  (h, p.1, p.2)
+
+def split [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
+ : List a → (a × List a × List a)
+ | x :: xs =>
+   let op x acc :=
+    if x ≤ acc.1
+    then (x, acc.1 :: acc.2.2, acc.2.1)
+    else (acc.1, x :: acc.2.2, acc.2.1)
+   xs.foldr op (x, [], [])
+ | _      => (default, [], [])
+
+#eval split₀ ([1,2,3,4,5] : List Nat)
+#eval split ([1,2,3,4,5] : List Nat)
+
+theorem split_left_le [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
+ (xs : List a) : (split₀ xs).2.1.length < xs.length := by
+  simp [split₀,
+        List.partition_eq_filter_filter,
+        List.length_filter_le,
+        Nat.lt_add_one_of_le]
+  sorry
+
+
+partial def mkHeap [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
+ : List a → Tree a
+ | []      => Tree.null
+ | x :: xs =>
+   let p := split (x :: xs)
+   Tree.node p.1 (mkHeap p.2.1) (mkHeap p.2.2)
+
+end S53
+
+/- Árvore Balanceada, erro de terminação -/
+
+
+/- # Exercicio 5.19 -/
 
 def filter : (α → Bool) → List α → List α
   | _, [] => []
