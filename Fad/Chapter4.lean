@@ -229,6 +229,7 @@ namespace Tree2
 inductive Tree (α : Type) : Type
 | null : Tree α
 | node : Nat → (Tree α) → α → (Tree α) → Tree α
+deriving Nonempty
 
 open Std.Format in
 

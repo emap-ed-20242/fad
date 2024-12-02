@@ -6,8 +6,8 @@ def dropWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α
 | [] => []
 | (x :: xs) => if p x then dropWhile p xs else x :: xs
 
-#eval dropWhile (· < 5) []
-#eval dropWhile (· < 5) (List.iota 10).reverse
+-- #eval dropWhile (· < 5) []
+-- #eval dropWhile (· < 5) (List.iota 10).reverse
 
 -- 1.2
 
@@ -118,8 +118,8 @@ example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
   rw [List.foldr]; rw [takeWhile.helper]
   rw [List.foldr]; rfl
 
-#eval takeWhile (· > 5) []
-#eval takeWhile (· < 5) [4, 7, 8]
+-- #eval takeWhile (· > 5) []
+-- #eval takeWhile (· < 5) [4, 7, 8]
 
 theorem map_equal (a : List α) (f : α → β): map f a = List.map f a := by
 induction a with
@@ -164,14 +164,14 @@ def integer: List Nat → Nat :=
   where
    shiftl (n d : Nat) : Nat := 10 * n + d
 
-#eval integer [1,2,3,5,6]
+-- #eval integer [1,2,3,5,6]
 
 def fraction : List Nat → Float :=
   List.foldr shiftr 0
   where
   shiftr (d : Nat) (n : Float) : Float := (d.toFloat + n)/10
 
-#eval fraction [1,2,3,5,3,4]
+-- #eval fraction [1,2,3,5,3,4]
 
 
 -- 1.21
@@ -184,7 +184,7 @@ def steep₀ (xs : List Nat) : Bool :=
   | []  => true
   | x :: xs => x > sum xs ∧ steep₀ xs
 
-#eval steep₀ (List.iota 10000000)
+-- #eval steep₀ (List.iota 10000000)
 
 def steep₁ (xs : List Nat) : Bool :=
   let rec sum : List Nat → Nat → Nat
@@ -194,7 +194,7 @@ def steep₁ (xs : List Nat) : Bool :=
   | []  => true
   | x :: xs => x > sum xs 0 ∧ steep₁ xs
 
-#eval steep₁ (List.iota 10000000)
+-- #eval steep₁ (List.iota 10000000)
 
 def steep₂ : List Nat → Bool :=
  Prod.snd ∘ faststeep
@@ -213,8 +213,8 @@ def steep₃ : List Nat → Bool :=
   faststeep (xs : List Nat) : (Nat × Bool) :=
    xs.reverse.foldl (λ t x => (x + t.1, x > t.1 ∧ t.2) ) (0, true)
 
-#eval steep₃ [8,5,2]
-#eval steep₃ (List.range 100000)
+-- #eval steep₃ [8,5,2]
+-- #eval steep₃ (List.range 100000)
 
 example : steep₁ [8,4,2,1] = steep₂ [8,4,2,1] := rfl
 example : steep₁ [] = steep₂ [] := rfl
