@@ -220,7 +220,6 @@ def mkTree : List Nat → Tree Nat
    simp [List.partition_eq_filter_filter,
          List.length_filter_le, Nat.lt_add_one_of_le]
 
-
 -- #eval mkTree (List.iota 20)
 
 end Tree1
@@ -230,6 +229,7 @@ namespace Tree2
 inductive Tree (α : Type) : Type
 | null : Tree α
 | node : Nat → (Tree α) → α → (Tree α) → Tree α
+deriving Nonempty
 
 open Std.Format in
 
@@ -288,11 +288,14 @@ where
     rotl (node t1 x t2)
    else rotl (node t1 x (rotr t2))
 
-def insert {α : Type} [LT α] [DecidableRel (@LT.lt α _)] : (x : α) -> Tree α -> Tree α
-| x, .null => node .null x .null
-| x, .node h l y r =>
-  if x < y then balance (insert x l) y r else
-  if x > y then balance l y (insert x r) else .node h l y r
+
+def insert {α : Type} [LT α] [DecidableRel (α := α) (· < ·)]
+ : (x : α) -> Tree α -> Tree α
+ | x, .null => node .null x .null
+ | x, .node h l y r =>
+   if x < y then balance (insert x l) y r else
+   if x > y then balance l y (insert x r) else .node h l y r
+
 
 def mkTree [LT α] [DecidableRel (@LT.lt α _)]
  : (xs : List α) → Tree α :=

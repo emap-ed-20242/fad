@@ -1,3 +1,4 @@
+import Fad.Chapter1 
 
 namespace Chapter2
 
@@ -56,10 +57,6 @@ def bits (n : Nat) : List (List Bool) :=
    | (true :: bs) => false :: inc bs
 
 
-partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
-  if p x then x
-  else until' p f (f x)
-
 def init₀ : List α → List α
 | []      => panic! "no elements"
 | [_]     => []
@@ -81,7 +78,7 @@ def init₂ : List α → Option (List α)
 def prune (p : List a → Bool) (xs : List a) : List a :=
  List.foldr cut [] xs
   where
-    cut x xs := until' done init₀ (x :: xs)
+    cut x xs := Chapter1.until' done init₀ (x :: xs)
     done (xs : List a) := xs.isEmpty ∨ p xs
 
 def ordered : List Nat → Bool

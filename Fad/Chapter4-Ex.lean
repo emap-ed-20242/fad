@@ -1,4 +1,5 @@
 import Fad.Chapter4
+import Fad.Chapter3
 
 namespace Chapter4
 
@@ -189,6 +190,31 @@ def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
 
 #eval merge [1,9,10] [2,4,9]
 
+end Tree2
+
+
+/- # Ex 4.14 -/
+
+namespace Tree2
+
+def union₁ (t₁ t₂ : Tree a) [LT a] [DecidableRel (α := a) (· < ·)]
+  : Tree a :=
+  List.foldr insert t₁ (Tree.flatten t₂)
+
+def frm (l r : Nat) (xa : Array a) : Tree a :=
+    if h : l = r then Tree.null
+    else
+      let m := (l + r) / 2
+      node (frm l m xa) xa[m] (frm (m + 1) r xa)
+
+def build [Inhabited a] (xs : List a) : Tree a :=
+  frm 0 xs.length xs.toArray
+
+def union₂ [LT a] [Inhabited a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
+  (t₁ t₂ : Tree a) : Tree a :=
+  build (merge t₁.flatten t₂.flatten)
+
+end Tree2
 
 
 /- 4.16 -/

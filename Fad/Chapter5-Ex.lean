@@ -1,4 +1,5 @@
 import Fad.Chapter5
+import Fad.Chapter1
 
 namespace Chapter5
 
@@ -24,6 +25,19 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
 
 /- 5.8 : see book -/
 
+
+/- # Exercicio 5.9 -/
+
+namespace S52
+
+example (xs : List Nat) : msort₂ xs = msort₃ xs := by
+  induction xs with
+  | nil => decide
+  | cons x xs ih =>
+    simp [msort₂, msort₃]
+    sorry
+
+end S52
 
 /- # Exercicio 5.13 -/
 

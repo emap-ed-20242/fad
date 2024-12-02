@@ -1,3 +1,5 @@
+import Fad.Chapter1
+import Fad.«Chapter1-Ex»
 
 namespace Chapter5
 
@@ -68,21 +70,21 @@ inductive Tree (α : Type) : Type where
  | node : Tree α → Tree α → Tree α
  deriving Repr, Inhabited
 
-def merge [LE a] [DecidableRel (α := a) (· ≤ ·)]
-: List a → List a → List a
-| [], ys => ys
-| xs, [] => xs
-| (x :: xs), (y :: ys) =>
-  if x ≤ y then
-   x :: merge xs (y :: ys)
-  else
-   y :: merge (x :: xs) ys
+def merge [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a → List a
+ | [], ys => ys
+ | xs, [] => xs
+ | (x :: xs), (y :: ys) =>
+   if x ≤ y then
+    x :: merge xs (y :: ys)
+   else
+    y :: merge (x :: xs) ys
 
-def flatten [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
-: Tree a → List a
-| Tree.null   => []
-| Tree.leaf x => [x]
-| Tree.node l r => merge (flatten l) (flatten r)
+
+def flatten [LE a] [DecidableRel (α := a) (· ≤ ·)]
+ : Tree a → List a
+ | Tree.null   => []
+ | Tree.leaf x => [x]
+ | Tree.node l r => merge (flatten l) (flatten r)
 
 
 def halve₀ (xs : List a) : (List a × List a) :=
@@ -93,8 +95,8 @@ def halve₁ : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
  List.foldr op ([],[])
 
--- inspirado em:
--- https://github.com/leanprover-community/mathlib4/blob/8666bd82efec40b8b3a5abca02dc9b24bbdf2652/Mathlib/Init/Data/Nat/Lemmas.lean#L482-L486
+
+-- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/Nat/Defs.html#Nat.twoStepInduction
 
 def twoStepInduction {P : List a → Prop}
   (empty : P [])
@@ -103,6 +105,7 @@ def twoStepInduction {P : List a → Prop}
   | [] => empty
   | a :: [] => single [a] (by simp)
   | a :: b :: cs => more _ _ _ (twoStepInduction empty single more _)
+
 
 theorem length_halve_fst : (halve₁ xs).fst.length = xs.length / 2 := by
 induction xs using twoStepInduction with
@@ -126,11 +129,12 @@ induction xs using twoStepInduction with
   simp
   omega
 
+
 def mkTree : (as : List a) → Tree a
-| [] => Tree.null
-| x :: xs =>
-  if h: xs.length = 0 then Tree.leaf x
-  else
+ | []  => Tree.null
+ | x :: xs =>
+   if h : xs.length = 0 then Tree.leaf x
+   else
     let p := halve₁ (x :: xs)
     have : (halve₁ (x :: xs)).fst.length < xs.length + 1 :=
      by simp [length_halve_fst]; omega
@@ -139,21 +143,42 @@ def mkTree : (as : List a) → Tree a
     Tree.node (mkTree p.1) (mkTree p.2)
  termination_by xs => xs.length
 
-def msort₀ [LE a] [DecidableRel (· ≤ · : a → a → Prop)]
- (xs : List a) : List a :=
- (flatten ∘ mkTree) xs
+def msort₀ [LE a] [DecidableRel (α := a) (· ≤ ·)] (xs : List a) : List a :=
+  (flatten ∘ mkTree) xs
 
-def msort₁ [LE a] [DecidableRel (· ≤ · : a → a → Prop)] : List a → List a
-| []  => []
-| x :: xs =>
-  if h: xs.length = 0 then [x]
-  else
+def msort₁ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
+ | []  => []
+ | x :: xs =>
+   if h: xs.length = 0 then [x]
+   else
     let p := halve₁ (x :: xs)
     have : (halve₁ (x :: xs)).fst.length < xs.length + 1 := by simp [length_halve_fst]; omega
     have : (halve₁ (x :: xs)).snd.length < xs.length + 1 := by simp [length_halve_snd]; omega
     merge (msort₁ p.1) (msort₁ p.2)
-
  termination_by xs => xs.length
+
+def pairWith (f : α → α → α) : (List α) → List α
+ | []             => []
+ | [x]            => [x]
+ | (x :: y :: xs) => f x y :: pairWith f xs
+
+open Chapter1 (wrap unwrap single until') in
+
+def mkTree₁ : List a → Tree a
+ | []      => .null
+ | a :: as =>
+    unwrap (until' single (pairWith .node) (List.map .leaf (a::as))) |>.getD .null
+
+def msort₂ [LE a] [DecidableRel (α := a) (· ≤ ·)] (xs : List a) : List a :=
+  (flatten ∘ mkTree₁) xs
+
+open Chapter1 (wrap unwrap single until') in
+
+def msort₃ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
+ | []    => []
+ | x::xs =>
+   unwrap (until' single (pairWith merge) (List.map wrap (x::xs))) |>.getD []
+
 
 /-
 #eval msort₁ [5,3,4,2,1,1]
