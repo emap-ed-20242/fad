@@ -174,6 +174,23 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
 
+/- # Ex 4.13 -/
+
+namespace Tree2
+
+def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
+  : List a → List a → List a
+  | [], ys => ys
+  | xs, [] => xs
+  | (x :: xs), (y :: ys) =>
+    if x < y then x :: merge xs (y :: ys)
+    else if x = y then x :: merge xs ys
+    else y :: merge (x :: xs) ys
+
+#eval merge [1,9,10] [2,4,9]
+
+
+
 /- 4.16 -/
 
 namespace Tree2
