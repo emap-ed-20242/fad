@@ -173,6 +173,40 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
+/- # Ex 4.13 -/
+
+
+/- # Ex 4.14 -/
+
+namespace Tree2
+
+def union₁ (t₁ t₂ : Tree a) [LT a] [DecidableRel (α := a) (· < ·)]
+  : Tree a :=
+  List.foldr insert t₁ (Tree.flatten t₂)
+
+
+def build (xs : List a) : Tree a :=
+  let n := xs.length
+  frm (0, n) (listArray (0, n − 1) xs)
+
+
+def union₂ (t₁ t₂ : Tree a) [LT a] [DecidableRel (α := a) (· < ·)]
+  : Tree a :=
+  build (merge (flatten t₁) (flatten t₂))
+
+
+def union {α : Type} [DecidableEq α] [Ord α] : Tree α → Tree α → Tree α
+| Tree.Null, t2 => t2
+| t1, Tree.Null => t1
+| (Tree.node l1 x1 r1), (Tree.node l2 x2 r2) =>
+    if x1 = x2 then
+      Tree.node (union l1 l2) x1 (union r1 r2)
+    else if compare x1 x2 == Ordering.lt then
+      Tree.node (union l1 (Tree.node l2 x2 r2)) x1 r1
+    else
+      Tree.node l1 x1 (union r1 (Tree.node l2 x2 r2))
+
+end Tree2
 
 /- 4.16 -/
 
