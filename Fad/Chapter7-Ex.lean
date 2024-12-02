@@ -19,7 +19,7 @@ def perms₁ {α : Type} : List α → List (List α)
 | []  => [[]]
 | [x] => [[x]]
 | xs  =>
-  let p := xs.splitAt (xs.length / 2)
+  let p := List.splitInTwo (Subtype.mk xs rfl)
   let yss := perms p.1
   let zss := perms p.2
   Chapter1.concatMap (Function.uncurry interleave) (cp yss zss)
