@@ -208,6 +208,23 @@ def union {α : Type} [DecidableEq α] [Ord α] : Tree α → Tree α → Tree �
 
 end Tree2
 
+/- # Ex 4.13 -/
+
+namespace Tree2
+
+def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
+  : List a → List a → List a
+  | [], ys => ys
+  | xs, [] => xs
+  | (x :: xs), (y :: ys) =>
+    if x < y then x :: merge xs (y :: ys)
+    else if x = y then x :: merge xs ys
+    else y :: merge (x :: xs) ys
+
+#eval merge [1,9,10] [2,4,9]
+
+
+
 /- 4.16 -/
 
 namespace Tree2
