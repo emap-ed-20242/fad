@@ -174,8 +174,11 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
+/- # Exercicio 4.11 -/
 
-/- # Ex 4.13 -/
+-- See book, teórico.
+
+/- # Exercicio 4.13 -/
 
 namespace Tree2
 
@@ -193,7 +196,7 @@ def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
 end Tree2
 
 
-/- # Ex 4.14 -/
+/- # Exercicio 4.14 -/
 
 namespace Tree2
 
