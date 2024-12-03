@@ -174,9 +174,16 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 
 #eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
 
+
 /- # Exercicio 4.11 -/
 
 -- See book, teórico.
+
+
+/- # Exercicio 4.12 -/
+
+-- See book, teórico.
+
 
 /- # Exercicio 4.13 -/
 
