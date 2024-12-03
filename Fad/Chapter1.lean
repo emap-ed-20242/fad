@@ -191,7 +191,8 @@ def inserts {a : Type} : a → List a → List (List a)
 | x, [] => [[x]]
 | x, (y :: ys) => (x :: y :: ys) :: map (y :: ·) (inserts x ys)
 
--- #eval inserts 1 [2,3,4,5]
+-- #eval inserts 1 [2,3,4]
+
 
 def concatMap (f : a → List b) : List a → List b :=
  concat1 ∘ (List.map f)
@@ -210,7 +211,8 @@ def perm₁ : List a → List (List a) := foldr step [[]]
 def perm₁' : List a → List (List a) :=
   foldr (concatMap ∘ inserts) [[]]
 
--- #eval perm₁ [1,2]
+#eval perm₁ [1,2,3]
+
 
 def picks {a : Type} : List a → List (a × List a)
 | [] => []
@@ -262,6 +264,7 @@ def perm : List a → List (List a)
  termination_by xs => xs.length
 
 -- #eval perm [1,2,3]
+
 
 partial def until' (p: a → Bool) (f: a → a) (x : a) : a :=
   if p x then x

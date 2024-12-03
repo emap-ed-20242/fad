@@ -174,6 +174,16 @@ def fraction : List Nat → Float :=
 -- #eval fraction [1,2,3,5,3,4]
 
 
+/- # Exercicio 1.14 -/
+
+def inserts₁ {a : Type} (x : a) (ys : List a) : List (List a) :=
+  let step y yss := 
+    (x :: y :: (yss.head!.tail)) :: yss.map (y :: ·)
+  ys.foldr step [[x]] 
+
+-- #eval inserts₁ 1 [2,3,4]
+
+
 -- 1.21
 -- set_option trace.profiler true
 
