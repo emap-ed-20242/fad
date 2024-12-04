@@ -211,8 +211,6 @@ def perm₁ : List a → List (List a) := foldr step [[]]
 def perm₁' : List a → List (List a) :=
   foldr (concatMap ∘ inserts) [[]]
 
-#eval perm₁ [1,2,3]
-
 
 def picks {a : Type} : List a → List (a × List a)
 | [] => []

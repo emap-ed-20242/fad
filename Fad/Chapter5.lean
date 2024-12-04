@@ -29,7 +29,7 @@ def qsort₀ [LT a] [DecidableRel (α := a) (· < ·)] : List a → List a :=
  Tree.flatten ∘ mkTree
 
 def qsort₁ [h₁ : LT a] [h₂ : DecidableRel (α := a) (· < ·)] : List a → List a
- | [] => []
+ | []        => []
  | (x :: xs) =>
   let p := xs.partition (· < x)
   (qsort₁ p.1) ++ [x] ++ (qsort₁ p.2)
@@ -37,13 +37,23 @@ def qsort₁ [h₁ : LT a] [h₂ : DecidableRel (α := a) (· < ·)] : List a �
  decreasing_by
   all_goals simp
    [List.partition_eq_filter_filter,
-    List.length_filter_le,
-    Nat.lt_add_one_of_le]
+    List.length_filter_le, Nat.lt_add_one_of_le]
+
+def qsort₂ [Ord a] (f : a → a → Ordering) : List a → List a
+  | []        => []
+  | (x :: xs) =>
+    let p := xs.partition (λ z => f z x = Ordering.lt)
+    (qsort₂ f p.1) ++ [x] ++ (qsort₂ f p.2)
+ termination_by xs => xs.length
+ decreasing_by
+  all_goals simp
+   [List.partition_eq_filter_filter,
+    List.length_filter_le, Nat.lt_add_one_of_le]
 
 /-
 #eval qsort₀ (List.iota 145)
 #eval qsort₁ (List.iota 145)
-#eval qsort₁ ['c','b','a']
+#eval qsort₂ ['c','b','a']
 -/
 
 structure Person where
