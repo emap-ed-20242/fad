@@ -39,6 +39,52 @@ example (xs : List Nat) : msort₂ xs = msort₃ xs := by
 
 end S52
 
+/-- # Exercise 5.12
+
+    sortBy é uma função de ordenação de listas parametrizada pela função de
+    comparação. Precisamos adaptar merge para então basicamente renomear
+    S52.msort₃ para sortBy parametrizando pela função de comparação.
+
+    Como em Haskell, `compare` é definida para todo tipo instância de `Ord`.
+    A função `compareOn` é equivalente a `comparing` do livro.  -/
+
+def merge₁ (f : a → a → Ordering) : List a → List a → List a
+ | [], ys => ys
+ | xs, [] => xs
+ | (x :: xs), (y :: ys) =>
+   if f x y = Ordering.lt then
+    x :: merge₁ f xs (y :: ys)
+   else
+    y :: merge₁ f (x :: xs) ys
+
+open Chapter1 (wrap unwrap single until') in
+open S52 in
+
+def sortBy (f : a → a → Ordering) : List a → List a
+ | []    => []
+ | x::xs =>
+   unwrap (until' single (pairWith (merge₁ f)) (List.map wrap (x::xs))) |>.getD []
+
+#eval sortBy (λ a b => compare a b) [2,1,3]
+#eval compareOn id 1 2
+
+def sortOn₁ [Ord b] (f : a → b) : List a → List a :=
+  sortBy (compareOn f)
+
+def sortOn₂ [Ord b] (f : a → b) (xs : List a) : List a :=
+  sortBy (compareOn Prod.fst) ((xs.map f).zip xs) |>.map Prod.snd
+
+def sortOn₃ [Ord b] (f : a → b) : List a → List a :=
+  List.map Prod.snd ∘ sortBy (compareOn Prod.fst) ∘ List.map (λ x => (f x, x))
+
+/- para mostrar a vantagem -/
+def len := dbg_trace "length"; String.length
+
+#eval sortOn₁ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
+#eval sortOn₂ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
+#eval sortOn₃ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
+
+
 /- # Exercicio 5.13 -/
 
 namespace S53
