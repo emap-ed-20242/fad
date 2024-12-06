@@ -55,6 +55,21 @@ example (xs : List Nat) : msort₂ xs = msort₃ xs := by
 
 end S52
 
+
+/-- # Exercise 5.11 -/
+
+structure Card where
+ suit : Char
+ rank : Char
+ deriving Repr
+
+instance : Ord Card where
+ compare a b :=
+  let posn seq r := seq.toList.findIdx (· = r)
+  (compareOn (posn "SHDC" ·.suit) a b).then
+  (compareOn (posn "AKQJT98765432" ·.rank) a b)
+
+
 /-- # Exercise 5.12
 
     sortBy é uma função de ordenação de listas parametrizada pela função de
@@ -81,7 +96,7 @@ def sortBy (f : a → a → Ordering) : List a → List a
  | x::xs =>
    unwrap (until' single (pairWith (merge₁ f)) (List.map wrap (x::xs))) |>.getD []
 
-#eval sortBy (λ a b => compare a b) [2,1,3]
+#eval sortBy (λ a b => Ordering.swap (compare a b)) [2,1,3]
 #eval compareOn id 1 2
 
 def sortOn₁ [Ord b] (f : a → b) : List a → List a :=
@@ -93,12 +108,15 @@ def sortOn₂ [Ord b] (f : a → b) (xs : List a) : List a :=
 def sortOn₃ [Ord b] (f : a → b) : List a → List a :=
   List.map Prod.snd ∘ sortBy (compareOn Prod.fst) ∘ List.map (λ x => (f x, x))
 
-/- para mostrar a vantagem -/
-def len := dbg_trace "length"; String.length
 
-#eval sortOn₁ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
-#eval sortOn₂ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
-#eval sortOn₃ len ["aaa", "a", "aa", "aaaaaa", "aaaa"]
+#eval sortOn₁ String.length ["aaa", "a", "aa", "aaaaaa", "aaaa"]
+
+#eval sortOn₂ (fun s => dbg_trace "fun {s}"
+    match s.toList with
+    | x :: y :: [] => Card.mk x y
+    | _ => Card.mk ' ' ' ')
+  ["H2","CA","CT","C7","C2", "SA","SQ","S9","S8",
+   "S2","HK","H5","H3"]
 
 
 /- # Exercicio 5.13 -/
@@ -114,7 +132,6 @@ def split [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
     then (x, acc.1 :: acc.2.2, acc.2.1)
     else (acc.1, x :: acc.2.2, acc.2.1)
    xs.foldr op (x, [], [])
-
 
 /-- Nn `split₁` the `where` makes `op` visible from outside.
     In `split`, `let` is defined only in the second equation of
@@ -132,6 +149,7 @@ def split₁ [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
   if x ≤ acc.1
   then (x, acc.1 :: acc.2.2, acc.2.1)
   else (acc.1, x :: acc.2.2, acc.2.1)
+
 
 #eval split₁ [3,1,2,4,5]
 

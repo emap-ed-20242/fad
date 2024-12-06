@@ -54,7 +54,7 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
    some (reverse vs, us)
  | (xs,       ys) => some (tail xs, ys)
 
-/- 
+/-
 #eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
 #eval do
  let a ← tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))

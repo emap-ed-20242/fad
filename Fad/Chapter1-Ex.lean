@@ -32,7 +32,7 @@ example : wrap [42] = [[42]] := rfl
 def unwrap {α : Type} (a : List α) : Option α :=
   match a with
   | [x] => some x
-  | _ => none
+  | _   => none
 
 example : unwrap [42] = some 42 := rfl
 example : unwrap [0, 1] = none := rfl
@@ -177,9 +177,9 @@ def fraction : List Nat → Float :=
 /- # Exercicio 1.14 -/
 
 def inserts₁ {a : Type} (x : a) (ys : List a) : List (List a) :=
-  let step y yss := 
+  let step y yss :=
     (x :: y :: (yss.head!.tail)) :: yss.map (y :: ·)
-  ys.foldr step [[x]] 
+  ys.foldr step [[x]]
 
 -- #eval inserts₁ 1 [2,3,4]
 
