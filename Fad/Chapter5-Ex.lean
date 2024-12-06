@@ -10,6 +10,19 @@ namespace Chapter5
 
 open S51 in
 
+/-
+example (x : Nat) (xs : List Nat) (p := xs.partition (· < x))
+ : qsort₀ p.1 ++ [x] ++ qsort₀ p.2 = qsort₀ (x :: xs)
+ := by
+ rewrite (config := {occs := .pos [3]}) [qsort₀]
+ unfold Function.comp
+ unfold mkTree
+ unfold Tree.flatten
+ unfold qsort₀
+ unfold Function.comp
+ sorry
+-/
+
 example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
   induction xs with
   | nil =>
@@ -20,8 +33,10 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
      unfold Tree.flatten
      rfl
   | cons x xs ih =>
-    simp [qsort₀, qsort₁, Function.comp]
-    rw [←ih]
+    simp [qsort₀,mkTree]
+    simp [Tree.flatten]
+    simp [qsort₁]
+    sorry
 
 
 /- # Exercicio 5.8 : see book -/
@@ -100,6 +115,7 @@ def split [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
     else (acc.1, x :: acc.2.2, acc.2.1)
    xs.foldr op (x, [], [])
 
+
 /-- Nn `split₁` the `where` makes `op` visible from outside.
     In `split`, `let` is defined only in the second equation of
     the pattern match. `let rec` would make `op` also visible.
@@ -140,6 +156,7 @@ partial def mkHeap [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
  | x :: xs =>
    let p := split (x :: xs)
    Tree.node p.1 (mkHeap p.2.1) (mkHeap p.2.2)
+
 
 end S53
 
