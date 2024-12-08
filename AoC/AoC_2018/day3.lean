@@ -1,6 +1,5 @@
 -- Problem: https://adventofcode.com/2018/day/3
 
-
 namespace AoC2018D3
 
 -- PART 1:
@@ -39,44 +38,40 @@ def fabric_size : Nat := 1000
 def fabric : Array (Array Nat) :=
   mkArray fabric_size (mkArray fabric_size 0)
 
-def mark_claim (fabric : Array (Array Nat)) (claim : Claim) : Array (Array Nat) :=
-  let update_row (row : Array Nat) (j : Nat) : Array Nat :=
+def mark_claim (f : Array (Array Nat)) (c : Claim) : Array (Array Nat) :=
+  let updt_row (row : Array Nat) (j : Nat) : Array Nat :=
     row.modify j (fun cell => cell + 1)
-  let update_fabric (fabric : Array (Array Nat)) (i : Nat) (j : Nat) : Array (Array Nat) :=
-    fabric.modify i (fun row => update_row row j)
-  let indices :=
-    List.range claim.width |>.bind
-      (fun w => List.range claim.height |>.map
-        (fun h => (claim.left + w, claim.top + h)))
-  indices.foldl (fun fabric (i, j) => update_fabric fabric i j) fabric
+  let updt (f : Array (Array Nat)) (i : Nat) (j : Nat) : Array (Array Nat) :=
+    f.modify i (fun row => updt_row row j)
+  let idx :=
+    List.range c.width |>.bind
+      (fun w => List.range c.height |>.map
+        (fun h => (c.left + w, c.top + h)))
+  idx.foldl (fun f (i, j) => updt f i j) f
 
-def mark_all_claims (claims : List Claim) : Array (Array Nat) :=
-  claims.foldl mark_claim fabric
+def mark_all_claims (cs : List Claim) : Array (Array Nat) :=
+  cs.foldl mark_claim fabric
 
-def count_overlaps (fabric : Array (Array Nat)) : Nat :=
-  fabric.foldl (fun acc row =>
+def count_overlaps (f : Array (Array Nat)) : Nat :=
+  f.foldl (fun acc row =>
     acc + row.foldl (fun acc cell =>
       if cell > 1 then acc + 1 else acc) 0) 0
 
-def overlap_count : Nat :=
-  count_overlaps (mark_all_claims claims)
-
-#eval overlap_count -- 104126
+#eval count_overlaps <| mark_all_claims claims -- 104126
 
 -- PART 2:
 
-def is_intact (fabric : Array (Array Nat)) (claim : Claim) : Bool :=
-  let indices := List.range claim.width |>.bind (fun w => List.range claim.height |>.map (fun h => (claim.left + w, claim.top + h)))
-  indices.all (fun (i, j) => fabric[i]![j]! == 1)
+def is_intact (f : Array (Array Nat)) (c : Claim) : Bool :=
+  let indices := List.range c.width |>.bind
+    (fun w => List.range c.height |>.map
+      (fun h => (c.left + w, c.top + h)))
+  indices.all (fun (i, j) => f[i]![j]! == 1)
 
-def find_intact_claim (claims : List Claim) (fabric : Array (Array Nat)) : Option Nat :=
-  match claims.find? (fun claim => is_intact fabric claim) with
+def find_intact_claim (cs : List Claim) (f : Array (Array Nat)) : Option Nat :=
+  match cs.find? (fun claim => is_intact f claim) with
   | some claim => some claim.id
   | none => none
 
-def intact_claim_id : Option Nat :=
-  find_intact_claim claims (mark_all_claims claims)
-
-#eval intact_claim_id.getD 0 -- 695
+#eval (find_intact_claim claims <| mark_all_claims claims).getD 0 -- 695
 
 end AoC2018D3
