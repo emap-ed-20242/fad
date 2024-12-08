@@ -8,20 +8,8 @@ namespace Chapter5
  # 5.2 : qsort definitions
 -/
 
-open S51 in
-
-/-
-example (x : Nat) (xs : List Nat) (p := xs.partition (· < x))
- : qsort₀ p.1 ++ [x] ++ qsort₀ p.2 = qsort₀ (x :: xs)
- := by
- rewrite (config := {occs := .pos [3]}) [qsort₀]
- unfold Function.comp
- unfold mkTree
- unfold Tree.flatten
- unfold qsort₀
- unfold Function.comp
- sorry
--/
+section
+open S51
 
 example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
   induction xs with
@@ -33,11 +21,11 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
      unfold Tree.flatten
      rfl
   | cons x xs ih =>
-    simp [qsort₀,mkTree]
-    simp [Tree.flatten]
-    simp [qsort₁]
+    simp [qsort₀, Function.comp, mkTree, Tree.flatten] at *
+    unfold qsort₁ at ih
     sorry
 
+end
 
 /- # Exercicio 5.8 : see book -/
 
@@ -54,6 +42,34 @@ example (xs : List Nat) : msort₂ xs = msort₃ xs := by
     sorry
 
 end S52
+
+/- # Exercicio 5.10 -/
+
+def expression₁ {α : Type} : List α → List α :=
+  flip (List.foldl (λ f x => (x :: ·) ∘ f) id) []
+
+def expression₂ {α : Type} : List α → List α :=
+  flip (List.foldr (λ x f => f ∘ (x :: ·)) id) []
+
+def reverse {α : Type} : List α → List α :=
+  List.foldl (flip List.cons) []
+
+example (xs : List Nat) : expression₁ xs = reverse xs := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    simp [expression₁, reverse] at *
+    simp [List.foldl_cons, flip] at *
+    sorry
+
+example (xs : List Nat) : expression₂ xs = reverse xs := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    simp [expression₂, reverse] at *
+    simp [List.foldr_cons, List.foldl_cons, flip] at *
+    sorry
+
 
 
 /-- # Exercise 5.11 -/
