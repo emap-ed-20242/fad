@@ -27,6 +27,28 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
 
 end
 
+/- # Exercicio 5.7 : Provar que T(m,n) ≤ m + n -/
+
+def T (m n : Nat) : Nat :=
+  match m, n with
+  | 0    , _     => 0
+  | _    , 0     => 0
+  | m + 1, n + 1 => 1 + max (T m (n + 1)) (T (m + 1) n)
+
+
+example (a b : Nat) : T a b ≤ a + b := by
+  induction a generalizing b with
+  | zero =>
+    induction b with
+    | zero => simp [T]
+    | succ b ih => simp [T]
+  | succ a ih₁ =>
+    induction b with
+    | zero => simp [T]
+    | succ b ih₂ =>
+      simp [T]
+      sorry
+
 /- # Exercicio 5.8 : see book -/
 
 
