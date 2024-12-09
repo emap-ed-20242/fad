@@ -480,10 +480,17 @@ where
  | t1, Digit.zero :: xs => Digit.one t1 :: xs
  | t1, Digit.one t2 :: xs => Digit.zero :: consT (Tree.mk t1 t2) xs
 
--- 3.3 Arrays
+
+/- 3.3 Arrays : in Lean arrays can be from arbitrary indexes i to j -/
 
 def listArray (xs : List α) : Array α :=
- xs.toArray
+  xs.toArray
+
+def accumArray (acc : α → β → α) (ini : α) (r : Nat)
+               (xs : List (Nat × β)) : Array α :=
+ let helper (n : Nat) :=
+    xs.filter (·.1 = n) |>.foldl (λ ac p ↦ acc ac p.2) ini
+ (List.range r).map helper |>.toArray
 
 
 end Chapter3

@@ -1,5 +1,6 @@
 import Fad.Chapter5
 import Fad.Chapter1
+import Fad.Chapter3
 import Mathlib.tactic
 
 namespace Chapter5
@@ -37,7 +38,7 @@ def T (m n : Nat) : Nat :=
 
 
 example (a b : Nat) : T a b ≤ a + b := by
-  induction a generalizing b with
+  induction a with
   | zero =>
     induction b with
     | zero => simp [T]
@@ -216,7 +217,18 @@ partial def mkHeap [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
 
 end S53
 
-/- Árvore Balanceada, erro de terminação -/
+
+/- # Exercicio 5.17 : qual a complexidade? -/
+
+open List (replicate) in
+open Function (uncurry) in
+
+def csort₁ (m : Nat) (xs : List Nat) : List Nat :=
+  let a := Chapter3.accumArray Nat.add 0 m (xs.map (·, 1))
+  a.zipWithIndex.toList.flatMap (uncurry replicate)
+
+#eval let xs := [17,0,4,2,1,3,60,5,1,7,15]
+ csort₁ (1 + xs.maximum.getD 0) xs
 
 
 /- # Exercicio 5.19 -/

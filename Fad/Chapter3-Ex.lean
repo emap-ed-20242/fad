@@ -226,10 +226,9 @@ def fa₁ (n : Nat) : Array Nat :=
 #eval fa₀ 10
 
 
--- 3.15
+-- # Exercicio 3.15
 
-/- first we need to agree about accum
-
+/-
 ghci> import Data.Array
 ghci> listArray (0,5) [0..]
 array (0,5) [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5)]
@@ -239,23 +238,21 @@ ghci> accum (\ a b -> a + b) (listArray (0,5) [0..10]) [(1,10),(1,30)]
 array (0,5) [(0,0),(1,41),(2,2),(3,3),(4,4),(5,5)]
 -/
 
-#eval (Fin.mk 3 (by simp) : Fin 4)
-
 def accum : (e → v → e) → Array e → List (Nat × v) → Array e
- | _, a1, List.nil => a1
- | f, a1, (p :: ps) =>
-   if h : p.1 < a1.size then
-    let i : Fin a1.size := Fin.mk p.1 h
-    accum f (a1.set i (f (a1.get i) p.2)) ps
+ | _, a, []        => a
+ | f, a, (p :: ps) =>
+   if h : p.1 < a.size then
+    let i : Fin a.size := Fin.mk p.1 h
+    accum f (a.set i (f (a.get i) p.2)) ps
    else
-    accum f a1 ps
+    accum f a ps
 
-#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10),(3,10)]
+#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10), (1,10), (3,10)]
 
-def accumArray
- (f : a → v → a) (e : a) (n : Nat) (is : List (Nat × v)) : Array a :=
+def accumArray₁ (f : a → v → a) (e : a) (n : Nat) (is : List (Nat × v)) : Array a :=
  accum f (Array.mkArray n e) is
 
-#eval accumArray (λ a b => a + b) 5 10 [(1,10),(3,10)]
+#eval accumArray₁ (λ a b => a + b) 0 5 [(1,10), (1,10), (3,10)]
+
 
 end Chapter3
