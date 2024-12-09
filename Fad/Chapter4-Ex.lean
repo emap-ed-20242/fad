@@ -241,22 +241,22 @@ def balanceL (t₁ : Tree a) (x : a) (t₂ : Tree a) : Tree a :=
 
 end Tree2
 
-/- 4.17 -/
+/- # Exercicio 4.17 -/
 
-section
-open Chapter4.Tree2
+namespace DynamicSet
+open Tree2
 
 abbrev Set (α : Type) : Type := Tree α
 
-def pair  (f : α -> β) (p : α × α) : (β × β) := (f p.1, f p.2)
+def pair (f : α -> β) (p : α × α) : (β × β) := (f p.1, f p.2)
 
-def split [LE α] [LT α] [DecidableRel (@LT.lt α _)] [DecidableRel (@LE.le α _)]
- (x : α) (t : Set α)
- : Set α × Set α :=
- pair (λ xs => mkTree xs) $ List.partition (· ≤ x) $ Tree.flatten t
+def split [LT α] [LE α] [DecidableRel (α := α) (· < ·)] [DecidableRel (α := α) (· ≤ ·)]
+  (x : α) : Set α → Set α × Set α :=
+  pair mkTree ∘ List.partition (· ≤ x) ∘ Tree.flatten
 
+#eval split 2 <| mkTree [3,4,1,2,5,6]
 #eval split 4 $ mkTree (List.iota 10)
 
-end
+end DynamicSet
 
 end Chapter4

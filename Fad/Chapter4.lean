@@ -255,8 +255,8 @@ def node (l : Tree α) (x : α) (r : Tree α): Tree α :=
  where h := 1 + (max l.height r.height)
 
 def bias : Tree α → Int
-| .null => 0
-| .node _ l _ r => l.height - r.height
+ | .null => 0
+ | .node _ l _ r => l.height - r.height
 
 def rotr : Tree α → Tree α
 | .null => .null
@@ -268,15 +268,14 @@ def rotl : Tree α → Tree α
 | .node _ ll y (.node _ lrl z rrl) => node (node ll y lrl) z rrl
 | .node _ _ _ .null => .null
 
-
 def balance (t1 : Tree α)  (x : α)  (t2 : Tree α) : Tree α :=
-if Int.natAbs (h1 - h2) ≤ 1 then
-  node t1 x t2
-else if h1 == h2 + 2 then
- rotateR t1 x t2
-else
- rotateL t1 x t2
-where
+ if Int.natAbs (h1 - h2) ≤ 1 then
+   node t1 x t2
+ else if h1 == h2 + 2 then
+   rotateR t1 x t2
+ else
+   rotateL t1 x t2
+ where
   h1 := t1.height
   h2 := t2.height
   rotateR t1 x t2 :=
@@ -297,11 +296,9 @@ def insert {α : Type} [LT α] [DecidableRel (α := α) (· < ·)]
    if x > y then balance l y (insert x r) else .node h l y r
 
 
-def mkTree [LT α] [DecidableRel (@LT.lt α _)]
- : (xs : List α) → Tree α :=
+def mkTree [LT α] [DecidableRel (α := α) (· < ·)] : (xs : List α) → Tree α :=
  Chapter1.foldr insert (.null : Tree α)
 
--- #eval mkTree (List.iota 20)
 
 def balanceR (t₁ : Tree α) (x : α) (t₂ : Tree α) : Tree α :=
  match t₁ with
