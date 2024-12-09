@@ -64,8 +64,13 @@ structure Person where
 instance : Ord Person where
   compare p q := compare p.age q.age
 
+/- alternative syntax
 instance : LT Person where
   lt a b := a.age < b.age
+-/
+
+instance : LT Person :=
+ { lt := fun a b => a.age < b.age }
 
 instance (a b : Person) : Decidable (a < b) :=
   inferInstanceAs (Decidable (a.age < b.age))

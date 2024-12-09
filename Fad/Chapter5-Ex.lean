@@ -50,6 +50,7 @@ partial def qsort₃ [LE α] [DecidableRel (α := α) (· ≤ ·)] (y : List α)
 mutual
 partial def help₄ [LE α] [DecidableRel (α := α) (· ≤ ·)]
  (x : α) (ys us vs: List α) : List α:=
+ dbg_trace "help₄ {ys.length} {us.length} {vs.length}"
  match ys with
  | []      => qsort₄ us ++ [x] ++ qsort₄ vs
  | y :: xs =>
@@ -60,8 +61,11 @@ partial def help₄ [LE α] [DecidableRel (α := α) (· ≤ ·)]
 
 partial def qsort₄ [LE α] [DecidableRel (α := α) (· ≤ ·)] : List α → List α
  | [] => []
- | x::xs => help₄ x xs [] []
+ | x::xs => dbg_trace "qsort₄ {(x::xs).length}"; help₄ x xs [] []
+
 end
+
+#eval qsort₄ [2,0,1,3,4]
 
 mutual
 def help₅ [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)]
