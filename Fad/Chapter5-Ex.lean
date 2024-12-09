@@ -1,6 +1,6 @@
-import Fad.Chapter5
 import Fad.Chapter1
 import Fad.Chapter3
+import Fad.Chapter5
 import Mathlib.tactic
 
 namespace Chapter5
@@ -10,7 +10,7 @@ namespace Chapter5
 -/
 
 section
-open S51
+open Quicksort
 
 example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
   induction xs with
@@ -27,6 +27,73 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
     sorry
 
 end
+
+
+/- # Exercicio 5.6 -/
+
+namespace Quicksort
+
+partial def qsort₃ [LE α] [DecidableRel (α := α) (· ≤ ·)] (y : List α) : List α :=
+  match y with
+  | [] => []
+  | x::xs => help x xs [] []
+  where
+   help  (x : α) (ys us vs: List α) : List α:=
+    match ys with
+    | []      => qsort₃ us ++ [x] ++ qsort₃ vs
+    | y :: xs =>
+      if x ≤ y then
+       help x xs us (y::vs)
+      else
+       help x xs (y::us) vs
+
+mutual
+partial def help₄ [LE α] [DecidableRel (α := α) (· ≤ ·)]
+ (x : α) (ys us vs: List α) : List α:=
+ match ys with
+ | []      => qsort₄ us ++ [x] ++ qsort₄ vs
+ | y :: xs =>
+   if x ≤ y then
+     help₄ x xs us (y::vs)
+   else
+     help₄ x xs (y::us) vs
+
+partial def qsort₄ [LE α] [DecidableRel (α := α) (· ≤ ·)] : List α → List α
+ | [] => []
+ | x::xs => help₄ x xs [] []
+end
+
+mutual
+def help₅ [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)]
+          (t : Nat) (x : α) (ys us vs: List α) : List α :=
+  if t = 0 then x :: ys else
+  if _ : ys = [] then
+    qsort₅ (t - 1 - vs.length) us ++ [x] ++ qsort₅ (t- 1 - us.length) vs
+  else
+    match ys with
+    | y :: xs =>
+      if  x ≤ y then
+       help₅ t x xs us (y::vs)
+      else
+       help₅ t x xs (y::us) vs
+termination_by (t, ys)
+
+def qsort₅ [LE α] [DecidableEq α] [DecidableRel (α := α) (· ≤ ·)]
+           (n : Nat) (ys : List α) : List α :=
+  if n = 0 then ys else
+  if  _ : ys.length = 0 then []
+   else
+    match ys with
+    | x :: xs => help₅ n x xs [] []
+termination_by (n, ys)
+end
+
+#eval qsort₃ [3,0,2,1]
+#eval qsort₄ [3,0,2,1]
+#eval qsort₅ 5 [3,0,2,1]
+
+end Quicksort
+
 
 /- # Exercicio 5.7 : Provar que T(m,n) ≤ m + n -/
 

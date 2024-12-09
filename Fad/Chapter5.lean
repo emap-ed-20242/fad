@@ -3,7 +3,7 @@ import Fad.«Chapter1-Ex»
 
 namespace Chapter5
 
-namespace S51 -- Quicksort
+namespace Quicksort
 
 inductive Tree a where
 | null : Tree a
@@ -53,24 +53,35 @@ def qsort₂ [Ord a] (f : a → a → Ordering) : List a → List a
 /-
 #eval qsort₀ (List.iota 145)
 #eval qsort₁ (List.iota 145)
-#eval qsort₂ ['c','b','a']
+#eval qsort₂ compare ['c','b','a']
 -/
 
 structure Person where
   name : String
   age : Nat
+ deriving Repr
+
+instance : Ord Person where
+  compare p q := compare p.age q.age
 
 instance : LT Person where
-  lt p q := p.age < q.age
+  lt a b := a.age < b.age
+
+instance (a b : Person) : Decidable (a < b) :=
+  inferInstanceAs (Decidable (a.age < b.age))
 
 def people := [
   Person.mk "Alice" 23,
   Person.mk "Bob" 25,
   Person.mk "Eve" 22]
 
--- #eval qsort₁ people (how to fix this? PENDING)
+/-
+#eval qsort₂ compare people
+#eval qsort₁ people
+-/
 
-end S51
+end Quicksort
+
 
 namespace S52 -- Mergesort
 
@@ -208,7 +219,7 @@ end S52
 
 namespace Heapsort
 
-inductive Tree (α : Type) : Type 
+inductive Tree (α : Type) : Type
  | null : Tree α
  | node : α → Tree α → Tree α → Tree α
  deriving Inhabited
