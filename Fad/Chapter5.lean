@@ -81,8 +81,8 @@ inductive Tree (α : Type) : Type where
  deriving Repr, Inhabited
 
 def merge [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a → List a
- | [], ys => ys
- | xs, [] => xs
+ | []       , ys        => ys
+ | xs       , []        => xs
  | (x :: xs), (y :: ys) =>
    if x ≤ y then
     x :: merge xs (y :: ys)
@@ -90,10 +90,9 @@ def merge [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a → Li
     y :: merge (x :: xs) ys
 
 
-def flatten [LE a] [DecidableRel (α := a) (· ≤ ·)]
- : Tree a → List a
- | Tree.null   => []
- | Tree.leaf x => [x]
+def flatten [LE a] [DecidableRel (α := a) (· ≤ ·)] : Tree a → List a
+ | Tree.null     => []
+ | Tree.leaf x   => [x]
  | Tree.node l r => merge (flatten l) (flatten r)
 
 
@@ -105,6 +104,10 @@ def halve₁ : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
  List.foldr op ([],[])
 
+/-
+#eval halve₁ [1,2,3,4,5,6,7,8,9,10]
+#eval halve₁ ([] : List Nat)
+-/
 
 -- https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/Nat/Defs.html#Nat.twoStepInduction
 
@@ -112,36 +115,37 @@ def twoStepInduction {P : List a → Prop}
   (empty : P [])
   (single : ∀ as, as.length = 1 → P as)
   (more : ∀ a b as, P as → P (a :: b :: as)) : ∀ as, P as
-  | [] => empty
-  | a :: [] => single [a] (by simp)
+  | []           => empty
+  | [a]          => single [a] (by simp)
   | a :: b :: cs => more _ _ _ (twoStepInduction empty single more _)
 
 
 theorem length_halve_fst : (halve₁ xs).fst.length = xs.length / 2 := by
-induction xs using twoStepInduction with
-| empty => simp [halve₁]
-| single a h =>
-  have _ :: [] := a
-  simp [halve₁]
-| more a b cs ih =>
-  rw [halve₁, List.foldr, List.foldr, <-halve₁]
-  simp
-  omega
+ induction xs using twoStepInduction with
+ | empty          => simp [halve₁]
+ | single a h     =>
+   have _ :: [] := a
+   simp [halve₁]
+ | more a b cs ih =>
+   rw [halve₁, List.foldr, List.foldr, <-halve₁]
+   simp
+   omega
+
 
 theorem length_halve_snd : (halve₁ xs).snd.length = (xs.length + 1) / 2 := by
-induction xs using twoStepInduction with
-| empty => simp [halve₁]
-| single a h =>
-  have _ :: [] := a
-  simp [halve₁]
-| more a b cs ih =>
-  rw [halve₁, List.foldr, List.foldr, <-halve₁]
-  simp
-  omega
+ induction xs using twoStepInduction with
+ | empty          => simp [halve₁]
+ | single a h     =>
+   have _ :: [] := a
+   simp [halve₁]
+ | more a b cs ih =>
+   rw [halve₁, List.foldr, List.foldr, <-halve₁]
+   simp
+   omega
 
 
 def mkTree : (as : List a) → Tree a
- | []  => Tree.null
+ | []      => Tree.null
  | x :: xs =>
    if h : xs.length = 0 then Tree.leaf x
    else
@@ -153,11 +157,13 @@ def mkTree : (as : List a) → Tree a
     Tree.node (mkTree p.1) (mkTree p.2)
  termination_by xs => xs.length
 
+
 def msort₀ [LE a] [DecidableRel (α := a) (· ≤ ·)] (xs : List a) : List a :=
   (flatten ∘ mkTree) xs
 
+
 def msort₁ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
- | []  => []
+ | []      => []
  | x :: xs =>
    if h: xs.length = 0 then [x]
    else
@@ -167,10 +173,12 @@ def msort₁ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
     merge (msort₁ p.1) (msort₁ p.2)
  termination_by xs => xs.length
 
+
 def pairWith (f : α → α → α) : (List α) → List α
  | []             => []
  | [x]            => [x]
  | (x :: y :: xs) => f x y :: pairWith f xs
+
 
 open Chapter1 (wrap unwrap single until') in
 
@@ -198,17 +206,32 @@ def msort₃ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
 
 end S52
 
-namespace S53 -- Heapsort
+namespace Heapsort
 
-inductive Tree (α : Type): Type where
+inductive Tree (α : Type) : Type 
  | null : Tree α
  | node : α → Tree α → Tree α → Tree α
- deriving Repr, Inhabited
+ deriving Inhabited
+
 
 def flatten [LE a] [DecidableRel (α := a) (· ≤ ·)] : Tree a → List a
 | Tree.null       => []
 | Tree.node x u v => x :: S52.merge (flatten u) (flatten v)
 
-end S53
+
+open Std.Format in
+
+def Tree.toFormat [ToString α] : (t: Tree α) → Std.Format
+| .null => Std.Format.text "."
+| .node x t₁ t₂ =>
+  bracket "(" (f!"{x}" ++
+   line ++ nest 2 t₁.toFormat ++ line ++ nest 2 t₂.toFormat) ")"
+
+instance [ToString a] : Repr (Tree a) where
+ reprPrec e _ := Tree.toFormat e
+
+
+end Heapsort
+
 
 end Chapter5
