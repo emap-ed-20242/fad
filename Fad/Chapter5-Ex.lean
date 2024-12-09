@@ -160,7 +160,7 @@ def sortOn₃ [Ord b] (f : a → b) : List a → List a :=
 
 /- # Exercicio 5.13 -/
 
-namespace S53
+namespace Heapsort
 
 def split [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
  : List a → (a × List a × List a)
@@ -214,8 +214,47 @@ partial def mkHeap [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
    let p := split (x :: xs)
    Tree.node p.1 (mkHeap p.2.1) (mkHeap p.2.2)
 
+end Heapsort
 
-end S53
+
+/- # Exercicio 5.15 -/
+
+namespace Heapsort
+
+def mkPair₀ : Nat → (List a) → (Tree a × List a)
+  | _, [] => (Tree.null, [])
+  | n, x :: xs =>
+    if h₁ : n = 0 then
+     (Tree.null, x :: xs)
+    else
+     let m := (n - 1) / 2
+     let l_ys := mkPair₀ m xs
+     let r_zs := mkPair₀ (n - 1 - m) l_ys.2
+     (Tree.node x l_ys.1 r_zs.1, r_zs.2)
+
+/-- this is not necessary. Keeping only to preserve the proofs. -/
+def mkPair : Nat → (List a) → (Tree a × List a)
+  | _, [] => (Tree.null, [])
+  | n, x :: xs =>
+    if h₁ : n = 0 then (Tree.null, x :: xs) else
+      let m := (n - 1) / 2
+      have h₂ : m < n := by
+        have h₃ := Nat.ne_zero_iff_zero_lt.mp h₁
+        rw [Nat.div_lt_iff_lt_mul Nat.zero_lt_two]
+        calc
+          n - 1 < n := Nat.sub_one_lt_of_lt h₃
+          _ < n + n := Nat.lt_add_of_pos_right h₃
+          _ = n * 2 := Eq.symm (Nat.mul_two n)
+      let y := mkPair m xs
+      have : (n - 1 - m) < n := by exact Nat.sub_one_sub_lt_of_lt h₂
+      let z := mkPair (n - 1 - m) y.snd
+      (Tree.node x y.fst z.fst, z.snd)
+
+def mkTree (xs : List a) : Tree a := (mkPair₀ xs.length xs).1
+
+#eval mkTree [5,1,3,2,4,5]
+
+end Heapsort
 
 
 /- # Exercicio 5.17 : qual a complexidade? -/
