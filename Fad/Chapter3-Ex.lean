@@ -164,8 +164,7 @@ def updateRA : Nat → α → RAList α → RAList α
 
 -- 3.12
 
-def uncurry : (a → b → c) → (a × b) → c
-| f, (x, y) => f x y
+open Function (uncurry) in
 
 def updatesRA : RAList α → List (Nat × α) → RAList α
   | r, up => List.foldl (flip (uncurry updateRA)) r up

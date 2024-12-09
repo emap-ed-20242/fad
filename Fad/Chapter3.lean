@@ -486,10 +486,10 @@ where
 def listArray (xs : List α) : Array α :=
   xs.toArray
 
-def accumArray (acc : α → β → α) (ini : α) (r : Nat)
+def accumArray (f : α → β → α) (ini : α) (r : Nat)
                (xs : List (Nat × β)) : Array α :=
- let helper (n : Nat) :=
-    xs.filter (·.1 = n) |>.foldl (λ ac p ↦ acc ac p.2) ini
+ let helper (i : Nat) :=
+    xs.filter (·.1 = i) |>.foldl (λ ac p ↦ f ac p.2) ini
  (List.range r).map helper |>.toArray
 
 

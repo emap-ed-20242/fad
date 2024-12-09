@@ -223,12 +223,12 @@ end S53
 open List (replicate) in
 open Function (uncurry) in
 
-def csort₁ (m : Nat) (xs : List Nat) : List Nat :=
+def csort (m : Nat) (xs : List Nat) : List Nat :=
   let a := Chapter3.accumArray Nat.add 0 m (xs.map (·, 1))
   a.zipWithIndex.toList.flatMap (uncurry replicate)
 
 #eval let xs := [17,0,4,2,1,3,60,5,1,7,15]
- csort₁ (1 + xs.maximum.getD 0) xs
+ csort (1 + xs.maximum.getD 0) xs
 
 
 /- # Exercicio 5.19 -/
