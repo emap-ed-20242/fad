@@ -11,6 +11,7 @@ def pick : List Nat → Option (Nat × List Nat)
     else
       some (y, x :: ys)
 
+#teste
 #eval pick []             -- Saída: none
 #eval pick [5]            -- Saída: some (5, [])
 #eval pick [3, 1, 4, 2]   -- Saída: some (1, [3, 4, 2])
