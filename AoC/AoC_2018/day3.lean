@@ -1,77 +1,87 @@
+import Std.Internal.Parsec
+import Std.Data.HashMap
+
 -- Problem: https://adventofcode.com/2018/day/3
 
 namespace AoC2018D3
 
--- PART 1:
+open Std.Internal.Parsec
+open Std.Internal.Parsec.String
 
 def content : String := include_str "../../data/AoC2018_day3.txt"
 
-def input := content.split (· == '\n')
+def input := content.split (· == '\n') |>.filter (· ≠ "")
 
 structure Claim where
-  id : Nat
-  left : Nat
-  top : Nat
-  width : Nat
+  id     : Nat
+  left   : Nat
+  top    : Nat
+  width  : Nat
   height : Nat
-  deriving Repr
+deriving Repr, Inhabited
 
-def parse_claim (s : String) : Option Claim :=
-  let parts := s.split (· == ' ')
-  if parts.length != 4 then none else
-    let id := parts[0]!.drop 1 |>.toNat!
-    let left_top := parts[2]!.dropRight 1 |>.split (· == ',')
-    let left := left_top[0]!.toNat!
-    let top := left_top[1]!.toNat!
-    let width_height := parts[3]!.split (· == 'x')
-    let width := width_height[0]!.toNat!
-    let height := width_height[1]!.toNat!
-    some { id, left, top, width, height }
+def parseClaim : Parser Claim := do
+ let id ← pstring "#" *> digits
+ let _ ← pstring " @ "
+ let left   ← digits <* pstring ","
+ let top    ← digits <* pstring ": "
+ let width  ← digits <* pstring "x"
+ let height ← digits
+ return { id := id, left := left, top := top, width := width, height := height }
 
-def claims : List Claim :=
-  input.filterMap <| parse_claim
+-- #eval parseClaim "#6 @ 703,27: 3x9".mkIterator
 
-#eval claims
+def parseClaims (is : List String) : List Claim :=
+  let p := Std.Internal.Parsec.String.Parser.run parseClaim
+  let help (i : String) : Claim :=
+    match p i with
+    | Except.ok c => c
+    | Except.error _ => default
+  is.map help
 
-def fabric_size : Nat := 1000
+abbrev Map := Std.HashMap (Nat × Nat) Nat
 
-def fabric : Array (Array Nat) :=
-  mkArray fabric_size (mkArray fabric_size 0)
 
-def mark_claim (f : Array (Array Nat)) (c : Claim) : Array (Array Nat) :=
-  let updt_row (row : Array Nat) (j : Nat) : Array Nat :=
-    row.modify j (fun cell => cell + 1)
-  let updt (f : Array (Array Nat)) (i : Nat) (j : Nat) : Array (Array Nat) :=
-    f.modify i (fun row => updt_row row j)
+-- Part 1
+
+def fabric : Map :=
+  (List.range 1000).foldl (fun m i =>
+    (List.range 1000).foldl (fun m j =>
+      m.insert (i, j) 0) m) Std.HashMap.empty
+
+def claims := parseClaims input
+
+def mark_claim (c : Claim) (m : Map) : Map :=
   let idx :=
-    List.range c.width |>.bind
+    List.range c.width |>.flatMap
       (fun w => List.range c.height |>.map
         (fun h => (c.left + w, c.top + h)))
-  idx.foldl (fun f (i, j) => updt f i j) f
+  idx.foldl (fun m p => m.modify p Nat.succ) m
 
-def mark_all_claims (cs : List Claim) : Array (Array Nat) :=
-  cs.foldl mark_claim fabric
+def mark_claims : List Claim → Map → Map
+ | []     , m => m
+ | c :: cs, m => mark_claims cs (mark_claim c m)
 
-def count_overlaps (f : Array (Array Nat)) : Nat :=
-  f.foldl (fun acc row =>
-    acc + row.foldl (fun acc cell =>
-      if cell > 1 then acc + 1 else acc) 0) 0
+def count_overlaps (m : Map) : Nat :=
+  m.fold (fun acc _ v => if v > 1 then acc + 1 else acc) 0
 
-#eval count_overlaps <| mark_all_claims claims -- 104126
+#eval count_overlaps $ mark_claims claims fabric
 
--- PART 2:
 
-def is_intact (f : Array (Array Nat)) (c : Claim) : Bool :=
-  let indices := List.range c.width |>.bind
-    (fun w => List.range c.height |>.map
+-- Part 2
+
+def is_intact (m : Map) (c : Claim) : Bool :=
+  let indices :=
+    List.range c.width |>.flatMap
+     (fun w => List.range c.height |>.map
       (fun h => (c.left + w, c.top + h)))
-  indices.all (fun (i, j) => f[i]![j]! == 1)
+  indices.all (fun p => m[p]! == 1)
 
-def find_intact_claim (cs : List Claim) (f : Array (Array Nat)) : Option Nat :=
-  match cs.find? (fun claim => is_intact f claim) with
+def find_intact_claim (cs : List Claim) (m : Map) : Option Nat :=
+  match cs.find? (is_intact m ·) with
   | some claim => some claim.id
   | none => none
 
-#eval (find_intact_claim claims <| mark_all_claims claims).getD 0 -- 695
+#eval (find_intact_claim claims <| mark_claims claims fabric).getD 0
 
 end AoC2018D3

@@ -6,7 +6,7 @@ import Mathlib.tactic
 namespace Chapter5
 
 /-
- # 5.2 : qsort definitions
+ # Exercicio 5.2 : qsort definitions
 -/
 
 section
