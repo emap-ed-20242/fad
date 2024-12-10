@@ -13,7 +13,6 @@ def input := content.split (· == '\n') |>.map to_coord
 
 -- Part 1
 
-
 def manhattan_distance (p1 p2 : Nat × Nat) : Nat :=
   Int.natAbs (p1.1 - p2.1) + Int.natAbs (p1.2 - p2.2)
 
@@ -46,19 +45,19 @@ def area (cs : List (Nat × Nat)) (target : Nat × Nat) : Nat :=
 def largest (cs : List (Nat × Nat)) : Nat :=
   fin_areas cs |>.map (area cs) |>.max?.getD 0
 
-#eval largest input -- 5187
+-- #eval largest input
 
--- PART 2:
+-- Par 2
 
 def total (cs : List (Nat × Nat)) (p : Nat × Nat) : Nat :=
   cs.foldl (fun acc c => acc + manhattan_distance c p) 0
 
 def safe_size (cs : List (Nat × Nat)) (dist : Nat) : Nat :=
   let ((min_x, min_y), (max_x, max_y)) := bound_box cs
-  let pts := (List.range (max_x - min_x + 1)).bind (fun x =>
+  let pts := (List.range (max_x - min_x + 1)).flatMap (fun x =>
     (List.range (max_y - min_y + 1)).map (fun y => (min_x + x, min_y + y)))
   pts.filter (fun p => total cs p < dist) |>.length
 
-#eval safe_size input 10000 -- 34829
+-- #eval safe_size input 10000
 
 end AoC2018D6
