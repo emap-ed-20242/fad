@@ -1,82 +1,87 @@
--- Problem: https://adventofcode.com/2018/day/3
+import Std.Internal.Parsec
+import Std.Data.HashMap
 
+-- Problem: https://adventofcode.com/2018/day/3
 
 namespace AoC2018D3
 
--- PART 1:
+open Std.Internal.Parsec
+open Std.Internal.Parsec.String
 
 def content : String := include_str "../../data/AoC2018_day3.txt"
 
-def input := content.split (· == '\n')
+def input := content.split (· == '\n') |>.filter (· ≠ "")
 
 structure Claim where
-  id : Nat
-  left : Nat
-  top : Nat
-  width : Nat
+  id     : Nat
+  left   : Nat
+  top    : Nat
+  width  : Nat
   height : Nat
-  deriving Repr
+deriving Repr, Inhabited
 
-def parse_claim (s : String) : Option Claim :=
-  let parts := s.split (· == ' ')
-  if parts.length != 4 then none else
-    let id := parts[0]!.drop 1 |>.toNat!
-    let left_top := parts[2]!.dropRight 1 |>.split (· == ',')
-    let left := left_top[0]!.toNat!
-    let top := left_top[1]!.toNat!
-    let width_height := parts[3]!.split (· == 'x')
-    let width := width_height[0]!.toNat!
-    let height := width_height[1]!.toNat!
-    some { id, left, top, width, height }
+def parseClaim : Parser Claim := do
+ let id ← pstring "#" *> digits
+ let _ ← pstring " @ "
+ let left   ← digits <* pstring ","
+ let top    ← digits <* pstring ": "
+ let width  ← digits <* pstring "x"
+ let height ← digits
+ return { id := id, left := left, top := top, width := width, height := height }
 
-def claims : List Claim :=
-  input.filterMap <| parse_claim
+-- #eval parseClaim "#6 @ 703,27: 3x9".mkIterator
 
-#eval claims
+def parseClaims (is : List String) : List Claim :=
+  let p := Std.Internal.Parsec.String.Parser.run parseClaim
+  let help (i : String) : Claim :=
+    match p i with
+    | Except.ok c => c
+    | Except.error _ => default
+  is.map help
 
-def fabric_size : Nat := 1000
+abbrev Map := Std.HashMap (Nat × Nat) Nat
 
-def fabric : Array (Array Nat) :=
-  mkArray fabric_size (mkArray fabric_size 0)
 
-def mark_claim (fabric : Array (Array Nat)) (claim : Claim) : Array (Array Nat) :=
-  let update_row (row : Array Nat) (j : Nat) : Array Nat :=
-    row.modify j (fun cell => cell + 1)
-  let update_fabric (fabric : Array (Array Nat)) (i : Nat) (j : Nat) : Array (Array Nat) :=
-    fabric.modify i (fun row => update_row row j)
+-- Part 1
+
+def fabric : Map :=
+  (List.range 1000).foldl (fun m i =>
+    (List.range 1000).foldl (fun m j =>
+      m.insert (i, j) 0) m) Std.HashMap.empty
+
+def claims := parseClaims input
+
+def mark_claim (c : Claim) (m : Map) : Map :=
+  let idx :=
+    List.range c.width |>.flatMap
+      (fun w => List.range c.height |>.map
+        (fun h => (c.left + w, c.top + h)))
+  idx.foldl (fun m p => m.modify p Nat.succ) m
+
+def mark_claims : List Claim → Map → Map
+ | []     , m => m
+ | c :: cs, m => mark_claims cs (mark_claim c m)
+
+def count_overlaps (m : Map) : Nat :=
+  m.fold (fun acc _ v => if v > 1 then acc + 1 else acc) 0
+
+#eval count_overlaps $ mark_claims claims fabric
+
+
+-- Part 2
+
+def is_intact (m : Map) (c : Claim) : Bool :=
   let indices :=
-    List.range claim.width |>.bind
-      (fun w => List.range claim.height |>.map
-        (fun h => (claim.left + w, claim.top + h)))
-  indices.foldl (fun fabric (i, j) => update_fabric fabric i j) fabric
+    List.range c.width |>.flatMap
+     (fun w => List.range c.height |>.map
+      (fun h => (c.left + w, c.top + h)))
+  indices.all (fun p => m[p]! == 1)
 
-def mark_all_claims (claims : List Claim) : Array (Array Nat) :=
-  claims.foldl mark_claim fabric
-
-def count_overlaps (fabric : Array (Array Nat)) : Nat :=
-  fabric.foldl (fun acc row =>
-    acc + row.foldl (fun acc cell =>
-      if cell > 1 then acc + 1 else acc) 0) 0
-
-def overlap_count : Nat :=
-  count_overlaps (mark_all_claims claims)
-
-#eval overlap_count -- 104126
-
--- PART 2:
-
-def is_intact (fabric : Array (Array Nat)) (claim : Claim) : Bool :=
-  let indices := List.range claim.width |>.bind (fun w => List.range claim.height |>.map (fun h => (claim.left + w, claim.top + h)))
-  indices.all (fun (i, j) => fabric[i]![j]! == 1)
-
-def find_intact_claim (claims : List Claim) (fabric : Array (Array Nat)) : Option Nat :=
-  match claims.find? (fun claim => is_intact fabric claim) with
+def find_intact_claim (cs : List Claim) (m : Map) : Option Nat :=
+  match cs.find? (is_intact m ·) with
   | some claim => some claim.id
   | none => none
 
-def intact_claim_id : Option Nat :=
-  find_intact_claim claims (mark_all_claims claims)
-
-#eval intact_claim_id.getD 0 -- 695
+#eval (find_intact_claim claims <| mark_claims claims fabric).getD 0
 
 end AoC2018D3
