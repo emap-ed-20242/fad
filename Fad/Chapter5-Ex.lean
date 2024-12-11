@@ -23,9 +23,12 @@ example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
      rfl
   | cons x xs ih =>
     simp [qsort₀, Function.comp, mkTree, Tree.flatten] at *
-    unfold qsort₁ at ih
-    sorry
-
+    unfold qsort₁
+    let l₁ := List.filter (λ y, y ≤ x) xs
+    let l₂ := List.filter (λ y, y > x) xs
+    simp [mkTree, Tree.flatten]
+    rw [ih l₁, ih l₂]
+    rfl
 end
 
 
