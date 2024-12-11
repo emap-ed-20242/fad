@@ -32,8 +32,17 @@ def execute₁ (pos : Nat × Nat) : List Command → Nat × Nat
     | ⟨"up", n⟩      => execute₁ (pos.1, pos.2 - n) xs
     | ⟨_,_⟩          => execute₁ pos xs
 
-#eval (λ a => a.1 * a.2) $ execute₁ (0,0) input
 
+def exec₁ (pos : Nat × Nat) (c : Command) : Nat × Nat :=
+  match c with
+  | ⟨"forward", n⟩ => (pos.1 + n, pos.2)
+  | ⟨"down", n⟩    => (pos.1, pos.2 + n)
+  | ⟨"up", n⟩      => (pos.1, pos.2 - n)
+  | ⟨_,_⟩          => pos
+
+
+#eval (λ a => a.1 * a.2) $ execute₁ (0,0) input
+#eval (λ a => a.1 * a.2) $ input.foldl exec₁ (0,0)
 
 -- Part 2
 
@@ -46,4 +55,14 @@ def execute₂ (pos : Nat × Nat) (aim : Nat) : List Command → Nat × Nat
     | ⟨"up", n⟩      => execute₂ pos (aim - n) xs
     | ⟨_,_⟩          => execute₂ pos aim xs
 
+
+def exec₂ (pos : Nat × Nat × Nat) (c : Command) : Nat × Nat × Nat :=
+  match c with
+  | ⟨"forward", n⟩ => (pos.1 + n, pos.2.1 + pos.2.2 * n, pos.2.2)
+  | ⟨"down", n⟩    => (pos.1, pos.2.1, pos.2.2 + n)
+  | ⟨"up", n⟩      => (pos.1, pos.2.1, pos.2.2 - n)
+  | ⟨_,_⟩          => pos
+
+
 #eval (λ a => a.1 * a.2) $ execute₂ (0,0) 0 input
+#eval (λ a => a.1 * a.2.1) $ input.foldl exec₂ (0, 0,0)
