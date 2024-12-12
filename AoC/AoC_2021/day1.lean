@@ -53,7 +53,7 @@ def sublists (n: Nat) : List α → List (List α) → List (List α)
    else
      sublists n xs (slice :: acc)
 
-#eval sublists 3 input []
+-- #eval sublists 3 input []
 #eval countIncreases $ sublists 3 input [] |>.map List.sum
 
 end AoC2021D1

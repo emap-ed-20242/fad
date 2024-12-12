@@ -1,5 +1,5 @@
 import Fad
-import AoC.AoC_2018.day6
+import AoC
 
 /-
 def main : IO Unit :=

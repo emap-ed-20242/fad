@@ -5,16 +5,14 @@ import Std
 namespace AoC2017D4
 
 -- Entrada e processamento
-def inp : String := include_str "../../data/AoC2017_day4.txt"
+def content : String := include_str "../../data/AoC2017_day4.txt"
 
-def parseInp (txt : String) : List String :=
-  txt.replace "\x0d" "" |>.splitOn "\n" |>.filter (· ≠ "")
+def input : List String :=
+ content.splitOn "\n" |>.filter (· ≠ "")
 
-def inpTask : List String := parseInp inp
-
-#eval inpTask
 
 -- Parte 1
+
 def isValid1 (ph : String) : Bool :=
   let wrds := ph.splitOn " "
   let rec hasDup (rem : List String) (seen : Std.HashSet String) : Bool :=
@@ -28,7 +26,7 @@ def isValid1 (ph : String) : Bool :=
 def countValid1 (phrs : List String) : Nat :=
   phrs.foldl (fun acc ph => if isValid1 ph then acc + 1 else acc) 0
 
-#eval countValid1 inpTask --477
+#eval countValid1 input
 
 -- Parte 2
 def sortChars (lst : List Char) : List Char :=
@@ -54,6 +52,6 @@ def isValid2 (ph : String) : Bool :=
 def countValid2 (phrs : List String) : Nat :=
   phrs.foldl (fun acc ph => if isValid2 ph then acc + 1 else acc) 0
 
-#eval countValid2 inpTask --167
+#eval countValid2 input
 
 end AoC2017D4

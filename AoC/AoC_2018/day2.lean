@@ -4,8 +4,7 @@ namespace AoC2018D2
 
 def content : String := include_str "../../data/AoC2018_day2.txt"
 
-def input := content.split (· == '\n')
-
+def input := content.splitOn "\n"
 
 -- PART 1
 
