@@ -17,10 +17,6 @@ def foldr1 [Inhabited a] (f : a → a → a) : List a → a
 def minimum [Inhabited a] [Min a] : List a → a :=
   foldr1 min
 
-#eval minimum [1,2,0]
-
-
-
 def maximum [Inhabited a] [Max a] : List a → a :=
   foldr1 max
 
