@@ -42,14 +42,28 @@ def minsWith {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
       | Ordering.gt => y :: ys
   xs.foldr step []
 
+def minsWith' {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
+  let step (x : β × α) (ys : List (β × α)) :=
+    match ys with
+    | [] => [x]
+    | y :: ys =>
+      match compare (x.fst) (y.fst) with
+      | Ordering.lt => [x]
+      | Ordering.eq => x :: y :: ys
+      | Ordering.gt => y :: ys
+  xs.map tuple |>.foldr step [] |>.map (·.snd)
+    where tuple x := (f x, x)
+
+
 #eval minsWith (fun (p : (Int × Int)) => p.1^2 + p.2^2)
   [(1, 2), (3, 4), (1, 1), (-1, -1), (1, -1)]
 
-#eval minsWith (fun x => dbg_trace "f {x}"; x % 3) (List.range 10)
+#eval minsWith' (fun x => dbg_trace "f {x}"; x % 3) (List.range 10)
 
 #eval minsWith id [1, 2, 1, 4, 5]
 
-#eval minsWith (fun s => s.length) ["apple", "banana", "kiwi", "pear"]
+#eval minsWith' (fun s => dbg_trace "f {s}"; s.length)
+  ["apple", "banana", "kiwi", "pear"]
 
 
 /- # Exercicio 7.4 -/
