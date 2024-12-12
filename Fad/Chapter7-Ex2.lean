@@ -1,19 +1,8 @@
-/- import Fad.Chapter7-Ex "unexpected token '-'; expected command"-/
--- Can't import ^ due to "-", I'll just paste the old version's code here
+import Fad.«Chapter7-Ex»
 
--- Old version
-def minsWith {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
-  let step (x : α) (ys : List α) : List α :=
-    match ys with
-    | [] => [x]
-    | y :: ys =>
-      match compare (f x) (f y) with
-      | Ordering.lt => [x]
-      | Ordering.eq => x :: y :: ys
-      | Ordering.gt => y :: ys
-  xs.foldr step []
+open Chapter7 (minsWith) -- Old definition
 
--- Optimized version
+-- Optimized definition
 def minsWith' {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
   let step (x : β × α) (ys : List (β × α)) :=
     match ys with
