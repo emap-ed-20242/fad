@@ -1,39 +1,38 @@
--- Problem: https://adventofcode.com/2019/day/1
+
+/- # Problem https://adventofcode.com/2019/day/1 -/
 
 namespace AoC2019D1
 
-
 def content : String := include_str "../../data/AoC2019_day1.txt"
-def weights_list : List Nat := content.splitOn "\n" |>.map String.toNat!
+
+def input : List Nat :=
+ content.splitOn "\n" |>.filter (· ≠ "") |>.map String.toNat!
+
+-- Part 1
+
+def solution₁ : Nat :=
+  input.foldr (λ n acc => ((n / 3) - 2) + acc) 0
+
+#eval input.map (λ n  => n / 3 - 2) |>.sum
 
 
-#eval content
-#eval weights_list
+-- Part 2
 
+def fuel₁ (n : Nat) : Nat :=
+  let mass := n / 3 - 2
+  if mass = 0 then
+   0
+  else
+   mass + fuel₁ mass
 
---- Part I
+def fuel₂ : Nat → Nat → Nat
+ | 0    , total => total
+ | n + 1, total =>
+  let mass := (n + 1) / 3 - 2
+  fuel₂ mass (total + mass)
 
-
-def get_required_gas_I ( ns : List Nat ) : Nat :=
-  ns.foldr (λ n acc => n/3 - 2 + acc) 0
-
-
-#eval get_required_gas_I weights_list --- 3390596
-
-
---- Part II
-
-
-def recursive_fuction ( n: Nat ) :  Nat :=
-  if (n/3-2) = 0 then 0 else
-    recursive_fuction ( n / 3 - 2) + (n/3-2)
-
-
-def get_required_gas_II ( ns : List Nat ) : Nat :=
-  ns.foldr (λ n acc => recursive_fuction n + acc) 0
-
-
-#eval get_required_gas_II weights_list  --- 5083024
-
+#eval input.foldr (λ n acc => fuel₁ n + acc) 0
+#eval input.foldr (λ n acc => fuel₂ n acc) 0
+#eval input.foldr (λ n acc => fuel₂ n 0 + acc) 0
 
 end AoC2019D1
