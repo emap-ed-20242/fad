@@ -29,6 +29,28 @@ instance : Ord Float where
 #eval minWith (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
 #eval minWith₂ (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
 
+/- # Exercicio 7.2 -/
+
+def minsWith {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
+  let step (x : α) (ys : List α) : List α :=
+    match ys with
+    | [] => [x]
+    | y :: ys =>
+      match compare (f x) (f y) with
+      | Ordering.lt => [x]
+      | Ordering.eq => x :: y :: ys
+      | Ordering.gt => y :: ys
+  xs.foldr step []
+
+#eval minsWith (fun (p : (Int × Int)) => p.1^2 + p.2^2)
+  [(1, 2), (3, 4), (1, 1), (-1, -1), (1, -1)]
+
+#eval minsWith (fun x => dbg_trace "f {x}"; x % 3) (List.range 10)
+
+#eval minsWith id [1, 2, 1, 4, 5]
+
+#eval minsWith (fun s => s.length) ["apple", "banana", "kiwi", "pear"]
+
 
 /- # Exercicio 7.4 -/
 
