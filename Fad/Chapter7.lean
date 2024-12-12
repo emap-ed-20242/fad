@@ -35,14 +35,13 @@ def foldr1₁ (f : a → a → a) (as : List a) (h : as.length > 0 := by decide)
 
 def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | []    => default
-  | [x]   => x
-  | x::xs => f x (foldr1 f xs)
+  | x::xs => xs.foldr f x
 
-example : foldr1 (fun a b => a + b ) [1,2,3] = 6 := rfl
+example : foldr1 (fun a b => a + b ) [1,2,3] = 6 := by rfl
 
-def minWith { a b : Type} [LE b] [Inhabited a] [DecidableRel (@LE.le b _)]
+def minWith {a b : Type} [LE b] [Inhabited a] [DecidableRel (α := b) (· ≤ ·)]
   (f : a → b) (as : List a) : a :=
-  let smaller f x y := if f x ≤ f y then x else y
+  let smaller f x y := cond (f x ≤ f y) x y
   foldr1 (smaller f) as
 
 

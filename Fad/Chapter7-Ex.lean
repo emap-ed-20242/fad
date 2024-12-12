@@ -2,6 +2,34 @@ import Fad.Chapter7
 
 namespace Chapter7
 
+/- # Exercicio 7.1 -/
+
+def minimumBy {α : Type} (cmp : α → α → Ordering) : List α → Option α
+  | []      => none
+  | x :: xs =>
+    some (xs.foldr (λ y r => cond (cmp y r = Ordering.lt) y r) x)
+
+def minWith₁ {α β : Type} [Ord β] (f : α → β) (xs : List α) : Option α :=
+  let helper (x y : α) : Ordering := compare (f x) (f y)
+  minimumBy helper xs
+
+def minWith₂ {α β : Type} [Ord β] (f : α → β) (xs : List α) : Option α :=
+  let tuple (x : α) : β × α := (f x, x)
+  let cmp (x y : β × α) := compare x.1 y.1
+  minimumBy cmp (xs.map tuple) >>= (λ pair => some pair.2)
+
+instance : Ord Float where
+  compare x y :=
+    if x < y then Ordering.lt
+    else if x == y then Ordering.eq
+    else Ordering.gt
+
+#eval minWith₁ (λ x => x * x) [3, 1, 4, 2]
+#eval minWith₂ (λ x => x * x) [3, 1, 4, 2]
+#eval minWith (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
+#eval minWith₂ (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
+
+
 /- # Exercicio 7.4 -/
 
 def interleave {α : Type} : List α → List α → List (List α)
