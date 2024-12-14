@@ -337,8 +337,7 @@ def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
         )
         dropWhileSL p tl
       else sl
-
-    termination_by lengthSL sl
+  termination_by lengthSL sl
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
