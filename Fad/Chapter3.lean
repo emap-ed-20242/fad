@@ -408,7 +408,7 @@ example {a : Type} : List.dropLast ∘ fromSL = fromSL ∘ @initSL a := by
   funext sl
   have ⟨lhs, rhs, ok⟩ := sl
   simp [fromSL]
-  unfold List.dropLast  
+  unfold List.dropLast
   by_cases hl: lhs = []
   subst hl
   simp at ok
@@ -428,7 +428,7 @@ example {a : Type} : List.dropLast ∘ fromSL = fromSL ∘ @initSL a := by
         have ⟨hln, _⟩ := hc
         contradiction
       | [_] =>
-        rw [<-(not_congr (List.length_eq_zero)), <-ne_eq, Nat.ne_zero_iff_zero_lt] at hl hr
+        rw [←(not_congr (List.length_eq_zero)), ← ne_eq, Nat.ne_zero_iff_zero_lt] at hl hr
         have h2 : lhs.length + rhs.length > 1 := by omega
         have h3 := congrArg List.length hc
         simp at h3
@@ -438,14 +438,14 @@ example {a : Type} : List.dropLast ∘ fromSL = fromSL ∘ @initSL a := by
         | nil =>
           have j :: js := lhs
           have k :: ks := rhs
-          simp [<-hc, initSL]
+          simp [← hc, initSL]
           by_cases hk: ks = [] <;> (
             by_cases hj: js = [] <;>
               simp [hk, hj, splitInTwoSL]
           )
         | cons _ _ ih =>
-          simp [ih]
-        
+          assumption
+
 end SL2
 
 
