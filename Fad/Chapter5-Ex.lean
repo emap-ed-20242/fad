@@ -109,17 +109,26 @@ def T (m n : Nat) : Nat :=
 
 
 example (a b : Nat) : T a b ≤ a + b := by
-  induction a with
+  induction a generalizing b with
   | zero =>
+    rw [T, Nat.zero_add]
+    exact Nat.zero_le b
+  | succ a ha =>
     induction b with
-    | zero => simp [T]
-    | succ b ih => simp [T]
-  | succ a ih₁ =>
-    induction b with
-    | zero => simp [T]
-    | succ b ih₂ =>
-      simp [T]
-      sorry
+    | zero =>
+      rw [T, Nat.add_zero]
+      exact Nat.zero_le (a+1)
+      simp
+    | succ b h2 =>
+      rw [T]
+      have h1 : T a (b + 1) ≤ a + b + 1 := by
+        exact ha (b+1)
+      rw [Nat.succ_add, Nat.succ_add, Nat.zero_add]
+      rw [Nat.succ_le_succ_iff]
+      rw [← Nat.add_assoc]
+      rw [Nat.max_le]
+      rw [Nat.add_assoc, Nat.add_comm 1 b, ← Nat.add_assoc] at h2
+      exact And.intro h1 h2
 
 /- # Exercicio 5.8 : see book -/
 
