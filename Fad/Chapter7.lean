@@ -110,4 +110,21 @@ def pick [LE a] [h : DecidableRel (α := a) (· ≤ ·)] [Inhabited a]
     aux p ps
 
 
+-- 7.3 Coin-changing
+
+def amount  (ds : List Nat) (cs : List Nat) : Nat :=
+ List.sum (List.zipWith (λ a b => a * b) ds cs)
+
+#eval amount [100,50,25,10,5,1] [2,1,1,1,0,0]
+
+def mkchange : List Nat → Nat → List Nat
+  | [], _ => []
+  | [_], n => [n]
+  | d :: ds, n =>
+    let c := n/d
+    c :: mkchange ds (n - c*d)
+
+#eval mkchange [100,50,25,10,5,1] 285 --usds
+#eval mkchange [200,100,50,20,10,5,2,1] 285 --ukds
+
 end Chapter7
