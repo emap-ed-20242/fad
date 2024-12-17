@@ -75,8 +75,14 @@ def reverse₁ {a : Type} : List a → List a :=
  List.foldl (flip List.cons) []
 
 example {a : Type} (xs : List a) :
-  reverse₁ (reverse₁ (xs)) = xs := sorry
-
+  reverse₁ (reverse₁ (xs)) = xs := by
+    unfold reverse₁
+    induction xs with
+    | nil => rfl
+    | cons x xs ih =>
+      simp
+      rw [flip]
+      sorry
 
 theorem foldr_filter_aux :
  ((foldr f e) ∘ (filter p)) ys = foldr f e (filter p ys) := by

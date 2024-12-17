@@ -2,6 +2,70 @@ import Fad.Chapter7
 
 namespace Chapter7
 
+/- # Exercicio 7.1 -/
+
+def minimumBy {α : Type} (cmp : α → α → Ordering) : List α → Option α
+  | []      => none
+  | x :: xs =>
+    some (xs.foldr (λ y r => cond (cmp y r = Ordering.lt) y r) x)
+
+def minWith₁ {α β : Type} [Ord β] (f : α → β) (xs : List α) : Option α :=
+  let helper (x y : α) : Ordering := compare (f x) (f y)
+  minimumBy helper xs
+
+def minWith₂ {α β : Type} [Ord β] (f : α → β) (xs : List α) : Option α :=
+  let tuple (x : α) : β × α := (f x, x)
+  let cmp (x y : β × α) := compare x.1 y.1
+  minimumBy cmp (xs.map tuple) >>= (λ pair => some pair.2)
+
+instance : Ord Float where
+  compare x y :=
+    if x < y then Ordering.lt
+    else if x == y then Ordering.eq
+    else Ordering.gt
+
+#eval minWith₁ (λ x => x * x) [3, 1, 4, 2]
+#eval minWith₂ (λ x => x * x) [3, 1, 4, 2]
+#eval minWith (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
+#eval minWith₂ (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
+
+/- # Exercicio 7.2 -/
+
+def minsWith {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
+  let step (x : α) (ys : List α) : List α :=
+    match ys with
+    | [] => [x]
+    | y :: ys =>
+      match compare (f x) (f y) with
+      | Ordering.lt => [x]
+      | Ordering.eq => x :: y :: ys
+      | Ordering.gt => y :: ys
+  xs.foldr step []
+
+def minsWith' {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :=
+  let step (x : β × α) (ys : List (β × α)) :=
+    match ys with
+    | [] => [x]
+    | y :: ys =>
+      match compare (x.fst) (y.fst) with
+      | Ordering.lt => [x]
+      | Ordering.eq => x :: y :: ys
+      | Ordering.gt => y :: ys
+  xs.map tuple |>.foldr step [] |>.map (·.snd)
+    where tuple x := (f x, x)
+
+
+#eval minsWith (fun (p : (Int × Int)) => p.1^2 + p.2^2)
+  [(1, 2), (3, 4), (1, 1), (-1, -1), (1, -1)]
+
+#eval minsWith' (fun x => dbg_trace "f {x}"; x % 3) (List.range 10)
+
+#eval minsWith id [1, 2, 1, 4, 5]
+
+#eval minsWith' (fun s => dbg_trace "f {s}"; s.length)
+  ["apple", "banana", "kiwi", "pear"]
+
+
 /- # Exercicio 7.4 -/
 
 def interleave {α : Type} : List α → List α → List (List α)

@@ -6,6 +6,23 @@ import AoC.AoC_2015.day2
 import AoC.AoC_2015.day3
 import AoC.AoC_2015.day5
 import AoC.AoC_2015.day6
+
+import AoC.AoC_2017.day1
+import AoC.AoC_2017.day2
+import AoC.AoC_2017.day4
+import AoC.AoC_2017.day5
+
 import AoC.AoC_2018.day1
 import AoC.AoC_2018.day2
 import AoC.AoC_2018.day3
+import AoC.AoC_2018.day5
+import AoC.AoC_2018.day6
+
+import AoC.AoC_2019.day1
+
+import AoC.AoC_2020.day1
+import AoC.AoC_2020.day2
+import AoC.AoC_2020.day3
+
+import AoC.AoC_2021.day1
+import AoC.AoC_2021.day2

@@ -337,8 +337,7 @@ def dropWhileSL (p : a → Bool) (sl : SymList a) : SymList a :=
         )
         dropWhileSL p tl
       else sl
-
-    termination_by lengthSL sl
+  termination_by lengthSL sl
 
 example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
  funext s
@@ -360,8 +359,92 @@ example {a : Type} (x : a) : cons x ∘ fromSL = fromSL ∘ consSL x := by
 
 
 example {a : Type} (x : a) : snoc x ∘ fromSL = fromSL ∘ snocSL x := by
- sorry
+  funext sl
+  simp [Function.comp]
+  have ⟨lhs, rhs, ok⟩ := sl
+  unfold snoc snocSL fromSL
+  match h: lhs with
+  | [] =>
+    simp [h]
+    simp at ok
+    apply ok.elim <;> intro h2; simp [h2]
+    have a :: [] := rhs
+    simp
+  | y :: ys => simp
 
+
+example {a : Type} : List.head? ∘ fromSL = @headSL a := by
+  funext sl
+  have ⟨lhs, rhs, ok⟩ := sl
+  simp [Function.comp, headSL, fromSL]
+  split <;> (
+    rename_i h
+    simp at h
+    have ⟨ha, hb⟩ := h
+    subst ha hb
+    simp
+  )
+  simp at ok
+  simp [ok]
+
+
+example {a : Type} : List.getLast? ∘ fromSL = @lastSL a := by
+  funext sl
+  have ⟨lhs, rhs, ok⟩ := sl
+  simp [Function.comp, lastSL, fromSL]
+  split <;> rename_i h
+  rw [List.isEmpty_eq_true] at h
+  subst h
+  simp at ok ⊢
+  apply ok.elim <;> intro h2
+  simp [h2]
+  have y :: [] := lhs
+  simp
+  have z :: _ := rhs
+  simp
+
+
+example {a : Type} : List.dropLast ∘ fromSL = fromSL ∘ @initSL a := by
+  funext sl
+  have ⟨lhs, rhs, ok⟩ := sl
+  simp [fromSL]
+  unfold List.dropLast
+  by_cases hl: lhs = []
+  subst hl
+  simp at ok
+  . by_cases hr: rhs = []
+    . subst hr
+      simp [initSL, nilSL]
+    . have _ :: [] := rhs
+      simp [initSL, splitInTwoSL]
+  . by_cases hr: rhs = []
+    . subst hr
+      simp [hl] at ok
+      have _ :: [] := lhs
+      simp [initSL, nilSL]
+    . match hc: lhs ++ rhs.reverse with
+      | [] =>
+        rw [List.append_eq_nil] at hc
+        have ⟨hln, _⟩ := hc
+        contradiction
+      | [_] =>
+        rw [←(not_congr (List.length_eq_zero)), ← ne_eq, Nat.ne_zero_iff_zero_lt] at hl hr
+        have h2 : lhs.length + rhs.length > 1 := by omega
+        have h3 := congrArg List.length hc
+        simp at h3
+        simp [h3] at h2
+      | a :: as =>
+        induction lhs ++ rhs.reverse with
+        | nil =>
+          have j :: js := lhs
+          have k :: ks := rhs
+          simp [← hc, initSL]
+          by_cases hk: ks = [] <;> (
+            by_cases hj: js = [] <;>
+              simp [hk, hj, splitInTwoSL]
+          )
+        | cons _ _ ih =>
+          assumption
 
 end SL2
 
