@@ -6,4 +6,6 @@ import Fad.Chapter2
 import Fad.Chapter3
 import Fad.Chapter4
 import Fad.Chapter5
+import Fad.Chapter6
 import Fad.Chapter7
+import Fad.Chapter9
