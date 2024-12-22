@@ -12,19 +12,28 @@ namespace Chapter5
 section
 open Quicksort
 
-example (xs : List Nat) : qsort₀ xs = qsort₁ xs := by
-  induction xs with
+theorem qsort₀_eq_qsort₁ [h₁ : LT β] [h₂ : DecidableRel (α := β) (· < ·)]
+(xs : List β) : qsort₀ xs = qsort₁ xs := by
+  cases xs with
   | nil =>
-     unfold qsort₀
-     unfold qsort₁
-     unfold Function.comp
-     unfold mkTree
-     unfold Tree.flatten
-     rfl
-  | cons x xs ih =>
-    simp [qsort₀, Function.comp, mkTree, Tree.flatten] at *
-    unfold qsort₁ at ih
-    sorry
+    rw [qsort₀, Function.comp, mkTree, Tree.flatten]
+    rw [qsort₁]
+  | cons a as =>
+    rw [qsort₀, Function.comp.eq_1 Tree.flatten mkTree]
+    rw [mkTree, Tree.flatten]
+    simp
+    rw [← Function.comp.eq_1 Tree.flatten mkTree, ← qsort₀]
+    rw [← Function.comp.eq_1 Tree.flatten mkTree, ← qsort₀]
+    rw [qsort₁]
+    simp
+    have h₁ := qsort₀_eq_qsort₁ (List.filter (fun x => decide (x < a)) as)
+    have h₂ := qsort₀_eq_qsort₁ (List.filter (not ∘ fun x => decide (x < a)) as)
+    rw [h₁, h₂]
+termination_by xs.length
+  decreasing_by
+    all_goals simp
+    all_goals rw [Nat.lt_add_one_iff]
+    all_goals simp [List.length_filter_le]
 
 end
 
