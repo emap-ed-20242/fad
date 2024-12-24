@@ -1,3 +1,5 @@
+
+--Vamos começar implementando função auxliares 
 --implementação do Quicksort 
 partial def qsort : List Nat → List Nat
 | []      => []
