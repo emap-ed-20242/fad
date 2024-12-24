@@ -1,3 +1,6 @@
+/--Exercise 3.5 Implement dropWhileSL so that
+ dropWhile·fromSL = fromSL·dropWhileSL-/
+
 --  tipo indutivo 
 inductive SL (α : Type) : Type
 | nil : SL α
