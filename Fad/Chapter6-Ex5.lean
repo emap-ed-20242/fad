@@ -1,5 +1,4 @@
--- O exercício pede para mostrar que D(n)=2(n−1)D(n) = 2(n-1) no algoritmo bottom-up para minmax.
---Primeiro, vamos definir alguns termos e conceitos básicos sobre minmax em Lean, uma linguagem de prova dependente funcional.
+Exercise 6.5 Show that D(n)=2(n−1) in the bottom-up algorithm for minmax.
 --Passo 1: Definições Básicas
 --Precisamos definir um tipo para representar a árvore binária utilizada no algoritmo minmax.
 inductive Tree
