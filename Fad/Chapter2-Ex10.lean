@@ -1,0 +1,13 @@
+--Temos que
+--
+--T(0) = O(1)
+--T(n) = n(R(n) + T(n-1) + O((n-1)!)) + O((n+1)!)
+--
+--onde R(n) é o tempo necessário para remover um elemento de uma lista com tamanho n.
+--O primeiro termo é o tempo necessário para calcular todas as avaliações das subperms.
+--Para cada avaliação, removemos um elemento, custando R(n) passos, calculamos as permutações da lista resultante. O termo final leva em conta as concatenações.
+--Desde que n R(n) = O((n+1)!) temos
+--
+--T(n) = n T(n-1) + O((n+1)!)
+--
+--e, como vimos, isso leva a T(n) = O((n+2)!).
