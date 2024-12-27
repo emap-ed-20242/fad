@@ -10,8 +10,9 @@ def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | [x]   => x
   | x::xs => f x (foldr1 f xs)
 
-def minimum [Inhabited a] [Min a] : List a → a :=
-  foldr1 min
+def minimum [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
+  : List a → a :=
+  foldr1 (fun x y => if x ≤ y then x else y)
 
 def maximum [Inhabited a] [Max a] : List a → a :=
   foldr1 max
