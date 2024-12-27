@@ -78,7 +78,6 @@ def reverse₀ {α : Type} (a : List α) : List α :=
 def reverse₁ {a : Type} : List a → List a :=
  List.foldl (flip List.cons) []
 
-
 theorem aux_rev_append {α : Type} (as bs: List α)
  : List.foldl (flip List.cons) as bs = (List.foldl (flip List.cons) [] bs) ++ as := by
   induction bs generalizing as with
