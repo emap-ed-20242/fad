@@ -97,6 +97,8 @@ open Chapter6 (minimum)
 #eval minimum [1,2,3]
 #eval [2] < [2,2]
 #eval minimum [[2,3],[1,2],[1]]
+#eval minimum ([] : List (List Nat)) -- []
+#eval minimum ([] : List Nat) -- 0
 
 example (x : Nat)
   : minimum ([].map (x :: ·)) ≠ x :: (minimum []) := by
