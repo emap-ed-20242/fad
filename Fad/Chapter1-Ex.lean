@@ -78,15 +78,44 @@ def reverse₀ {α : Type} (a : List α) : List α :=
 def reverse₁ {a : Type} : List a → List a :=
  List.foldl (flip List.cons) []
 
-example {a : Type} (xs : List a) :
-  reverse₁ (reverse₁ (xs)) = xs := by
-    unfold reverse₁
+theorem reverse₁_nil {α : Type} : reverse₁ ([] : List α) = ([] : List α) := rfl
+theorem reverse₁_unique {α : Type} (x : α) : reverse₁ [x] = [x] := rfl
+
+theorem aux_reverse₁_append {α : Type} (as bs: List α) :
+List.foldl (flip List.cons) as bs = (List.foldl (flip List.cons) [] bs) ++ as := by
+  induction bs generalizing as with
+    | nil => rfl
+    | cons c cs ih =>
+      rw [List.foldl, flip]
+      rw [List.foldl, flip]
+      rw [ih, ih [c]]
+      simp
+
+theorem reverse₁_cons : reverse₁ (x::xs) = reverse₁ xs ++ [x] := by
+  rw (occs := .pos [1]) [reverse₁]
+  rw [List.foldl]
+  rw [flip]
+  rw [aux_reverse₁_append]
+  rfl
+
+theorem reverse₁_append {α : Type} (as bs: List α) :
+reverse₁ (as ++ bs) = reverse₁ bs ++ reverse₁ as := by
+  induction as generalizing bs with
+    | nil => simp; rfl
+    | cons c cs ih =>
+      rw [List.cons_append]
+      rw [reverse₁_cons, reverse₁_cons, ← List.append_assoc]
+      rw [ih]
+
+theorem reverse₁_reverse₁_eq_self {α : Type} (xs : List α) : reverse₁ (reverse₁ (xs)) = xs := by
     induction xs with
     | nil => rfl
-    | cons x xs ih =>
-      simp
-      rw [flip]
-      sorry
+    | cons a as ih =>
+      rw [reverse₁_cons]
+      rw [reverse₁_append]
+      rw [reverse₁_unique, ih]
+      rfl
+
 
 theorem foldr_filter_aux :
  ((foldr f e) ∘ (filter p)) ys = foldr f e (filter p ys) := by
