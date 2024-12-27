@@ -10,10 +10,6 @@ def foldr1 [Inhabited a] (f : a → a → a) : List a → a
   | [x]   => x
   | x::xs => f x (foldr1 f xs)
 
-#eval foldr1 min [1,2,3]
-#eval foldr1 max [1,2,3]
-
-
 def minimum [Inhabited a] [Min a] : List a → a :=
   foldr1 min
 
@@ -45,6 +41,5 @@ def minmax [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
   (unwrap ∘ until' single (pairWith op) ∘ mkPairs) xs
     |>.getD (default, default)
 
-#eval minmax [3,4,5,6,7,8,9,10,2]
 
 end Chapter6

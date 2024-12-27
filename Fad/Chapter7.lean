@@ -20,7 +20,7 @@ def foldr1₀ (f : a → a → a) (as : NonEmptyList a) : a :=
       have h₁ := as.property
       rw [List.length_tail]
       omega)))
-termination_by as.val.length
+ termination_by as.val.length
 
 -- #eval foldr1₀ (fun a b => a + b ) (Subtype.mk [1,2,3,4,5,6] (by simp))
 

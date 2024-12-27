@@ -34,6 +34,10 @@ def unwrap {α : Type} (a : List α) : Option α :=
   | [x] => some x
   | _   => none
 
+def unwrap! {α : Type} [Inhabited α]  : (a : List α) → α
+ | [x] => x
+ | _   => panic! "unwrap!: empty list"
+
 example : unwrap [42] = some 42 := rfl
 example : unwrap [0, 1] = none := rfl
 example : unwrap (@List.nil Nat) = none := rfl
@@ -163,21 +167,27 @@ example (f : α → β → β) : map (foldr f e) ∘ tails = scanr f e := by
     sorry
 
 
--- 1.11
+/- # Exercicio 1.11 -/
 
 def integer: List Nat → Nat :=
   List.foldl shiftl 0
   where
    shiftl (n d : Nat) : Nat := 10 * n + d
 
--- #eval integer [1,2,3,5,6]
-
 def fraction : List Nat → Float :=
   List.foldr shiftr 0
   where
   shiftr (d : Nat) (n : Float) : Float := (d.toFloat + n)/10
 
--- #eval fraction [1,2,3,5,3,4]
+/- # Exercicio 1.13 -/
+
+def apply {a : Type} : Nat → (a → a) → a → a
+ | 0, _     => id
+ | n + 1, f => f ∘ apply n f
+
+def apply₁ {a : Type} : Nat → (a → a) → a → a
+ | 0, _     => id
+ | n + 1, f => apply n f ∘ f
 
 
 /- # Exercicio 1.14 -/

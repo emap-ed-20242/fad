@@ -174,6 +174,19 @@ def mkTree : (as : List a) → Tree a
  termination_by xs => xs.length
 
 
+partial def mkPair [Inhabited a] : (n : Nat) → (xs : List a) → (Tree a × List a)
+ | 0, xs => (Tree.null, xs)
+ | 1, xs => (Tree.leaf xs.head!, xs.tail)
+ | n, xs =>
+   let m := n / 2
+   let (t₁, ys) := mkPair m xs
+   let (t₂, zs) := mkPair (n - m) ys
+   (Tree.node t₁ t₂, zs)
+
+def mkTree₀ [Inhabited a] (as : List a) : Tree a :=
+  mkPair as.length as |>.fst
+
+
 def msort₀ [LE a] [DecidableRel (α := a) (· ≤ ·)] (xs : List a) : List a :=
   (flatten ∘ mkTree) xs
 
