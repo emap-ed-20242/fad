@@ -1,3 +1,4 @@
+import Fad.Chapter6
 import Fad.Chapter7
 
 namespace Chapter7
@@ -87,6 +88,22 @@ def perms₁ {α : Type} : List α → List (List α)
   let yss := perms p.1
   let zss := perms p.2
   Chapter1.concatMap (Function.uncurry interleave) (cp yss zss)
+
+
+/- # Exercicio 7.5 -/
+
+open Chapter6 (minimum)
+
+#eval minimum [1,2,3]
+#eval [2] < [2,2]
+#eval minimum [[2,3],[1,2],[1]]
+
+example (x : Nat)
+  : minimum ([].map (x :: ·)) ≠ x :: (minimum []) := by
+  rw [List.map]
+  rw [minimum]
+  rw [Chapter6.foldr1]
+  exact List.ne_cons_self
 
 
 /- # Exercicio 7.10  -/
