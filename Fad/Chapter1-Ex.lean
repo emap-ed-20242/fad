@@ -66,7 +66,7 @@ example : ∀ xs : List Nat, single xs = true ↔ xs.length = 1 := by
     simp [List.length]
 
 
--- 1.4
+/- # Exercicio 1.4 -/
 
 def reverse₀ {α : Type} (a : List α) : List α :=
   let rec helper (a : List α) (res : List α) : List α :=
@@ -78,11 +78,9 @@ def reverse₀ {α : Type} (a : List α) : List α :=
 def reverse₁ {a : Type} : List a → List a :=
  List.foldl (flip List.cons) []
 
-theorem reverse₁_nil {α : Type} : reverse₁ ([] : List α) = ([] : List α) := rfl
-theorem reverse₁_unique {α : Type} (x : α) : reverse₁ [x] = [x] := rfl
 
-theorem aux_reverse₁_append {α : Type} (as bs: List α) :
-List.foldl (flip List.cons) as bs = (List.foldl (flip List.cons) [] bs) ++ as := by
+theorem aux_rev_append {α : Type} (as bs: List α)
+ : List.foldl (flip List.cons) as bs = (List.foldl (flip List.cons) [] bs) ++ as := by
   induction bs generalizing as with
     | nil => rfl
     | cons c cs ih =>
@@ -91,38 +89,39 @@ List.foldl (flip List.cons) as bs = (List.foldl (flip List.cons) [] bs) ++ as :=
       rw [ih, ih [c]]
       simp
 
-theorem reverse₁_cons : reverse₁ (x::xs) = reverse₁ xs ++ [x] := by
+theorem rev_cons : reverse₁ (x :: xs) = reverse₁ xs ++ [x] := by
   rw (occs := .pos [1]) [reverse₁]
-  rw [List.foldl]
-  rw [flip]
-  rw [aux_reverse₁_append]
+  rw [List.foldl, flip]
+  rw [aux_rev_append]
   rfl
 
-theorem reverse₁_append {α : Type} (as bs: List α) :
+theorem rev_append {α : Type} (as bs: List α) :
 reverse₁ (as ++ bs) = reverse₁ bs ++ reverse₁ as := by
   induction as generalizing bs with
     | nil => simp; rfl
     | cons c cs ih =>
       rw [List.cons_append]
-      rw [reverse₁_cons, reverse₁_cons, ← List.append_assoc]
+      rw [rev_cons, rev_cons, ← List.append_assoc]
       rw [ih]
 
-theorem reverse₁_reverse₁_eq_self {α : Type} (xs : List α) : reverse₁ (reverse₁ (xs)) = xs := by
-    induction xs with
-    | nil => rfl
-    | cons a as ih =>
-      rw [reverse₁_cons]
-      rw [reverse₁_append]
-      rw [reverse₁_unique, ih]
-      rfl
+theorem reverse_reverse {α : Type}  (xs : List α)
+ : reverse₁ (reverse₁ xs) = xs := by
+ induction xs with
+ | nil => rfl
+ | cons a as ih =>
+   rw [rev_cons]
+   rw [rev_append]
+   rw [ih]; simp [reverse₁, flip]
 
+
+/- # Exercicio 1.5 -/
 
 theorem foldr_filter_aux :
- ((foldr f e) ∘ (filter p)) ys = foldr f e (filter p ys) := by
-  rfl
+ (foldr f e ∘ filter p) ys = foldr f e (filter p ys) := by
+ rfl
 
 example (f : α → β → β) :
- (foldr f e) ∘ (filter p) = foldr (λ x y => if p x then f x y else y) e
+ foldr f e ∘ filter p = foldr (λ x y => if p x then f x y else y) e
  := by
   funext xs
   induction xs with
