@@ -1,8 +1,12 @@
 import Fad.Chapter1
+import Fad.«Chapter1-Ex»
+import Fad.Chapter3
 import Fad.Chapter5
 import Fad.Chapter7
 
 namespace Chapter8
+
+namespace S1
 
 /- 8.1 Minimum-height trees -/
 
@@ -78,7 +82,7 @@ def mkTrees₁ {a : Type} [Inhabited a] : List a → List (Tree a) :=
  foldrn (concatMap ∘ extend) (wrap ∘ .leaf)
 
 
-def Forest (a : Type) : Type := List (Tree a)
+abbrev Forest (a : Type) := List (Tree a)
 
 
 def foldl1 [Inhabited a] (f : a → a → a) : List a → a
@@ -168,10 +172,129 @@ def mct : List Nat → Tree Nat :=
   leaf x :: join x ts
  rollup ∘ List.map Prod.fst ∘ foldrn hstep (wrap ∘ leaf)
 
+end S1
+
 
 /- 8.2 Huffman coding trees -/
 
+namespace S2
+open S1 (Tree Forest)
+open Chapter1 (concatMap wrap unwrap unwrap! single until' single picks apply)
+open Chapter3.SL2 (SymList nilSL singleSL headSL headSL! snocSL nullSL tailSL)
+
+def depths : Tree a → List Nat :=
+ let rec frm (n : Nat) : Tree a → List Nat
+  | Tree.leaf _   => [n]
+  | Tree.node u v => frm (n + 1) u ++ frm (n + 1) v
+ frm 0
+
+abbrev Weight := Nat
+abbrev Elem   := Char × Weight
+abbrev Cost   := Nat
+
+def cost (t : Tree Elem) : Cost :=
+ let t := t.fringe.zip (depths t)
+ List.sum $ t.map (λ (c, d) => d * c.snd)
+
+def weight : Tree Elem → Nat
+ | Tree.leaf (_, w) => w
+ | Tree.node u v    => weight u + weight v
+
+def cost₁ : Tree Elem → Cost
+ | Tree.leaf _   => 0
+ | Tree.node u v => cost u + cost v + weight u + weight v
+
+def pairs (xs : List α) : List ((α × α) × List α) :=
+  (picks xs).flatMap
+    fun (x, ys) =>
+     (picks ys).map
+      fun (y, zs) => ((x, y), zs)
+
+/- Exercise 8.11 -/
+def insert (t₁ : Tree Elem) : Forest Elem → Forest Elem
+ | [] => [t₁]
+ | t₂ :: ts =>
+   if weight t₁ ≤ weight t₂ then
+     t₁ :: t₂ :: ts
+   else
+     t₂ :: insert t₁ ts
+
+def combine (ts : Forest Elem) : List (Forest Elem) :=
+  (pairs ts).map fun (p, us) =>
+    insert (Tree.node p.1 p.2) us
+
+def mkForests : List (Tree Elem) → List (Forest Elem) :=
+ until' (flip List.all single) (concatMap combine) ∘ wrap
+
+def mkTrees : List Elem → List (Tree Elem) :=
+ List.map unwrap! ∘ mkForests ∘ List.map Tree.leaf
+
+def mkForests₁ (ts : List (Tree Elem)) : List (Forest Elem) :=
+ apply (ts.length - 1) (concatMap combine) [ts]
+
+def mkTrees₁ : List Elem → List (Tree Elem) :=
+ List.map unwrap! ∘ mkForests₁ ∘ List.map Tree.leaf
 
 
+/- quadractic version -/
 
+def huffman₁ (es : List Elem) : Tree Elem :=
+ let gstep : Forest Elem → Forest Elem
+  | t₁ :: t₂ :: ts => insert (Tree.node t₁ t₂) ts
+  | []             => dbg_trace "error"; []       -- not used
+  | t₁ :: ts       => dbg_trace "error"; t₁ :: ts -- not used
+ unwrap! (until' single gstep (List.map Tree.leaf es))
+
+-- #eval huffman₁ [('a', 2), ('b', 3), ('c', 1), ('d', 20)]
+
+/- linear time version -/
+
+abbrev Queue (α : Type) := SymList α
+abbrev Stack (α : Type) := List α
+abbrev SQ (α : Type)    := Stack α × Queue α
+abbrev Pair             := Tree Elem × Weight
+
+def leaf : Elem → Pair
+ | (c, w) => (Tree.leaf (c, w), w)
+
+def node : Pair → Pair → Pair
+ | (t₁, w₁), (t₂, w₂) => (Tree.node t₁ t₂, w₁ + w₂)
+
+def makeSQ (xs : List Pair) : SQ Pair :=
+  (xs, nilSL)
+
+def singleSQ (sq : SQ a) : Bool :=
+  sq.1.isEmpty ∧ singleSL sq.2
+
+def extractSQ (sq : SQ Pair) : Tree Elem :=
+  (headSL! sq.2).1
+
+
+def extractMin (ps : SQ Pair) : Pair × SQ Pair :=
+  let (xs, ys) := ps
+  if nullSL ys then
+   (xs.head!, (xs.tail, ys))
+  else if xs.isEmpty then
+   (headSL! ys, (xs, tailSL ys))
+  else
+   let x := xs.head!
+   let y := headSL! ys
+   if x.snd ≤ y.snd then
+    (x, (xs.tail, ys))
+   else
+    (y, (xs, tailSL ys))
+
+def gstep (ps : SQ Pair) : SQ Pair :=
+  let add : Pair → SQ Pair → SQ Pair
+   | y, (xs, ys) => (xs, snocSL y ys)
+  let (p₁, qs) := extractMin ps
+  let (p₂, rs) := extractMin qs
+  add (node p₁ p₂) rs
+
+def huffman : List Elem → Tree Elem :=
+ extractSQ ∘ until' singleSQ gstep ∘ makeSQ ∘ List.map leaf
+
+-- #eval huffman [('a', 2), ('b', 3), ('c', 1), ('d', 20)]
+
+end S2
 end Chapter8

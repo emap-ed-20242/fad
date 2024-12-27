@@ -127,6 +127,11 @@ def headSL : SymList a → Option a
  | ⟨[], y :: _, _⟩ => some y
  | ⟨x::_, _, _⟩    => some x
 
+def headSL! [Inhabited a] : SymList a → a
+ | ⟨[], [], _⟩     => panic! "headSL! empty SL"
+ | ⟨[], y :: _, _⟩ => y
+ | ⟨x::_, _, _⟩    => x
+
 def lastSL : SymList a → Option a
 | SymList.mk xs ys _ => if ys.isEmpty then xs.head? else ys.head?
 
