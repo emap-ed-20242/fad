@@ -282,19 +282,7 @@ def split₁ [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
 #eval split₁ [3,1,2,4,5]
 
 theorem split_left_le [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
- (xs : List a) : (split₁ xs).2.1.length ≤ xs.length := by
-  unfold split₁
-  split
-  . simp
-  . rename_i x xs
-    induction xs with
-    | nil => simp [split]
-    | cons y xs ih =>
-      unfold List.foldr
-      simp [split₁.op]
-      split ; simp
-      rename_i h2
-      sorry
+ (xs : List a) : (split₁ xs).2.1.length ≤ xs.length := by sorry
 
 partial def mkHeap [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
  : List a → Tree a

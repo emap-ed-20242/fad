@@ -118,7 +118,3 @@ def pick₁ : List Nat → Option (Nat × List Nat)
   | none => none
   | some (y, ys) =>
     if x ≤ y then some (x, xs) else some (y, x :: ys)
-
--- #eval pick₁ [7]
--- #eval pick₁ [3, 1, 4]
--- #eval pick₁ [10, 20, 2, 5, 7]

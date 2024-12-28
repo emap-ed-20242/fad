@@ -1,14 +1,13 @@
+import Fad.Chapter1
+import Fad.«Chapter1-Ex»
 
 namespace Chapter3
 
 open List (reverse tail cons)
 
--- 3.1 Symmetric lists
+/- # Section 3.1 Symmetric lists -/
 
 def _root_.List.single (xs : List α) : Bool := xs.length = 1
-
-/- motivação: algumas operações em listas encadeadas tem custo linear
-   e outras constante. -/
 
 def snoc {a : Type} (x : a) (xs : List a) : List a :=
   xs ++ [x]
@@ -18,7 +17,6 @@ namespace SL1
 
 abbrev SymList (α : Type u) := (List α) × (List α)
 
--- #check ([],[])
 
 def nilSL : SymList a := ([], [])
 
@@ -37,13 +35,9 @@ def toSL : List a → SymList a
  | [] => nilSL
  | x :: xs => consSL x (toSL xs)
 
--- #eval fromSL $ consSL 4 $ consSL 3 $ consSL 2 $ consSL 1 nilSL
--- #eval toSL (List.iota 20)
-
 def lastSL : SymList a → Option a
 | (xs, ys) => if ys.isEmpty then xs.head? else ys.head?
 
--- #eval snocSL 20 (snocSL 10 (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))))
 
 def tailSL (sl : SymList a) : Option (SymList a) :=
  match sl with
@@ -54,14 +48,6 @@ def tailSL (sl : SymList a) : Option (SymList a) :=
    some (reverse vs, us)
  | (xs,       ys) => some (tail xs, ys)
 
-/-
-#eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
-#eval do
- let a ← tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], []))))
- pure $ fromSL a
-
-#eval tailSL (snocSL 1 (snocSL 2 (snocSL 3 ([], [])))) >>= pure ∘ fromSL
--/
 
 end SL1
 
@@ -86,6 +72,7 @@ def test (xs : List α) (ok : xs.length > 2) : α := xs[2]
 
 
 namespace SL2
+open Chapter1 (dropWhile)
 
 -- it may simplify the proofs
 structure SymList' (α : Type) where
@@ -128,7 +115,7 @@ def headSL : SymList a → Option a
  | ⟨x::_, _, _⟩    => some x
 
 def headSL! [Inhabited a] : SymList a → a
- | ⟨[], [], _⟩     => panic! "headSL! empty SL"
+ | ⟨[], [], _⟩     => panic! "headSL of empty SL"
  | ⟨[], y :: _, _⟩ => y
  | ⟨x::_, _, _⟩    => x
 
@@ -151,14 +138,6 @@ def p (h : List Nat) : Prop := h.length = 3
 
 def test₁ := (@Subtype.mk _ p [1,2,3] (by simp [p]))
 def test₂ := (Subtype.mk [1,2,3] (by rfl : p [1,2,3]) )
-
-/-
-#check p [1,2,3]
-#eval test₁.val
-#check test₁.property
-#check List.splitInTwo test₁
-#check List.splitInTwo (Subtype.mk [1,2,3,4] (by rfl))
--/
 
 def splitInTwoSL (xs : List a) : SymList a :=
   let p := List.splitInTwo (Subtype.mk xs (by rfl))
@@ -200,14 +179,6 @@ def initSL {a : Type} : (sl : SymList a) → SymList a
        have a :: [] := ys
        simp at *))
 
-/-
-#eval fromSL $ SymList.mk [1] [3,2] (by simp)
-#eval fromSL $ tailSL $ SymList.mk [1] [3,2] (by simp)
-#eval fromSL $ initSL $ SymList.mk [1] [3,2] (by simp)
-
-#check (fromSL ∘ tailSL : SymList Nat → List Nat)
-#check (tail ∘ fromSL : SymList Nat → List Nat)
--/
 
 example : ∀ (as : SymList α), fromSL (tailSL as) = tail (fromSL as) := by
   intro sl
@@ -450,6 +421,15 @@ example {a : Type} : List.dropLast ∘ fromSL = fromSL ∘ @initSL a := by
           )
         | cons _ _ ih =>
           assumption
+
+
+example (p : α → Bool)
+  : dropWhile p ∘ fromSL = fromSL ∘ dropWhileSL p := by
+  funext sl
+  have ⟨lhs, rhs, ok⟩ := sl
+  simp [Function.comp]
+  sorry
+
 
 end SL2
 
