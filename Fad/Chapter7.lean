@@ -79,13 +79,10 @@ def sort [LT a] [DecidableRel (@LT.lt a _)]
   : List a → List a :=
   minWith ic ∘ perms
 
--- #eval sort [3, 1, 4, 2, 7, 4]
 
 def gstep [LT a] [DecidableRel (@LT.lt a _)]
   (x : a) : List a → List a :=
   (minWith ic) ∘ extend x
-
--- #eval gstep 0 [7,1,2,3]
 
 
 def picks (xs : List a) : List (a × List a) :=

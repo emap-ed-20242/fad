@@ -3,7 +3,7 @@ import Fad.Chapter1
 
 namespace Chapter4
 
--- 4.1 A one-dimensional search problem
+/- # Section 4.1: a one-dimensional search problem -/
 
 namespace D1
 
@@ -67,7 +67,7 @@ partial def search₃ (f : Nat → Nat) (t : Nat) : List Nat :=
 end D1
 
 
--- 4.2 A two-dimensional search problem
+/- # Section 4.2 A two-dimensional search problem -/
 
 namespace D2
 
@@ -164,9 +164,9 @@ def myhead₂ (xs : List a) (h : xs.length ≠ 0) : a :=
 end D2
 
 
--- 4.3 Binary search trees
+/- # Section 4.3 Binary search trees -/
 
-namespace Tree1
+namespace BST1
 
 inductive Tree (α : Type) : Type
 | null : Tree α
@@ -220,11 +220,9 @@ def mkTree : List Nat → Tree Nat
    simp [List.partition_eq_filter_filter,
          List.length_filter_le, Nat.lt_add_one_of_le]
 
--- #eval mkTree (List.iota 20)
+end BST1
 
-end Tree1
-
-namespace Tree2
+namespace BST2
 
 inductive Tree (α : Type) : Type
 | null : Tree α
@@ -308,6 +306,20 @@ def balanceR (t₁ : Tree α) (x : α) (t₂ : Tree α) : Tree α :=
    then balance l y (balanceR r x t₂)
    else balance l y (node r x t₂)
 
-end Tree2
+end BST2
+
+namespace DSet
+open BST2 (Tree insert node)
+
+abbrev Set a := Tree a
+
+def member [LT a] [DecidableRel (α := a) (· < ·)] (x : a) : Set a → Bool
+| .null => false
+| .node _ l y r =>
+  if x < y      then member x l
+  else if x > y then member x r
+  else true
+
+end DSet
 
 end Chapter4

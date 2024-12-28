@@ -1,6 +1,8 @@
-import Fad.Chapter1 
+import Fad.Chapter1
+import Fad.«Chapter1-Ex»
 
 namespace Chapter2
+open Chapter1 (dropWhile)
 
 /-
 #eval List.append [1,2,3] [4,5,6]
@@ -21,10 +23,6 @@ def concat₁ (xss : List (List a)) : List a :=
 
 
 -- 2.4 Amortised running times
-
-def dropWhile (p : a → Bool) : List a → List a
-| [] => []
-| (x :: xs) => if p x then dropWhile p xs else x :: xs
 
 def build (p : a → a → Bool) : List a → List a :=
  List.foldr insert []

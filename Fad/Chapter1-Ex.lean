@@ -2,27 +2,22 @@ import Fad.Chapter1
 
 namespace Chapter1
 
-def dropWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α
+/- # Exercicio 1.1 -/
+
+def dropWhile (p : α → Bool) : (xs : List α) -> List α
 | [] => []
 | (x :: xs) => if p x then dropWhile p xs else x :: xs
 
--- #eval dropWhile (· < 5) []
--- #eval dropWhile (· < 5) (List.iota 10).reverse
 
--- 1.2
+/- # Exercicio 1.2 -/
 
 def uncons {α : Type} (xs : List α) : Option (α × List α) :=
   match xs with
   | [] => none
   | x :: xs => some (x, xs)
 
-example : uncons ([] : List Nat) = none := rfl
-example : uncons [1] = some (1, []) := rfl
-example : uncons [1, 2] = some (1, [2]) := rfl
-example : uncons [1, 2, 3, 4, 5] = some (1, [2, 3, 4, 5]) := rfl
 
-
--- 1.3
+/- # Exercicio 1.3 -/
 
 def wrap {α : Type} (a : α) : List α := [a]
 
@@ -115,12 +110,23 @@ theorem reverse_reverse {α : Type}  (xs : List α)
 
 /- # Exercicio 1.5 -/
 
+def map' {α β : Type} (f : α → β) (xs : List α) : List β :=
+  let op x xs := f x :: xs
+  List.foldr op [] xs
+
+def filter' {α : Type} (p : α → Bool) (xs : List α) : List α :=
+  let op x xs := if p x then x :: xs else xs
+  List.foldr op [] xs
+
+
+/- # Exercicio 1.6 -/
+
 theorem foldr_filter_aux :
  (foldr f e ∘ filter p) ys = foldr f e (filter p ys) := by
  rfl
 
-example (f : α → β → β) :
- foldr f e ∘ filter p = foldr (λ x y => if p x then f x y else y) e
+example (f : α → β → β)
+ : foldr f e ∘ filter p = foldr (λ x y => if p x then f x y else y) e
  := by
   funext xs
   induction xs with
@@ -142,21 +148,29 @@ example (f : α → β → β) :
     exact ih
 
 
-def takeWhile {α : Type} (p : α → Bool) : (xs : List α) -> List α :=
-  List.foldr helper []
- where helper (x : α) (xs : List α) : List α :=
-   if p x then x :: xs else []
+/- # Exercicio 1.7 -/
 
-example : takeWhile (· < 3) [1, 2, 3, 4] = [1, 2] := by
+def takeWhile {α : Type} (p : α → Bool) : List α → List α :=
+  let op x acc := if p x then x :: acc else []
+  List.foldr op []
+
+example : takeWhile (fun x => x % 2 = 0) [2, 3, 4, 5] = [2] := by
   rw [takeWhile]
-  rw [List.foldr]; rw [takeWhile.helper]
-  rw [List.foldr]; rw [takeWhile.helper]
-  rw [List.foldr]; rw [takeWhile.helper]
-  rw [List.foldr]; rw [takeWhile.helper]
-  rw [List.foldr]; rfl
+  rw [List.foldr]
+  rw [List.foldr]
+  rw [List.foldr]
+  rw [List.foldr]
+  rw [List.foldr]
+  rfl
 
--- #eval takeWhile (· > 5) []
--- #eval takeWhile (· < 5) [4, 7, 8]
+
+/- # Exercicio 1.8 -/
+
+def dropWhileEnd {α : Type} (p : α → Bool) (xs : List α) : List α :=
+ let op x xs := if p x ∧ xs.isEmpty then [] else x :: xs
+ xs.foldr op []
+
+
 
 theorem map_equal (a : List α) (f : α → β): map f a = List.map f a := by
 induction a with
@@ -224,10 +238,34 @@ def inserts₁ {a : Type} (x : a) (ys : List a) : List (List a) :=
     (x :: y :: (yss.head!.tail)) :: yss.map (y :: ·)
   ys.foldr step [[x]]
 
--- #eval inserts₁ 1 [2,3,4]
+
+/- # Exercicio 1.15 -/
+
+def remove {α : Type} [DecidableEq α] (x : α) : List α → List α
+| []        => []
+| (y :: ys) => if x = y then ys else y :: remove x ys
+
+partial def perms₃ {α : Type} [DecidableEq α] : List α → List (List α)
+| []  => [[]]
+| as  =>
+  as.flatMap (λ x => (perms₃ (remove x as)).map (λ ys => x :: ys))
 
 
--- 1.21
+/- # Exercicio 1.20 -/
+
+def concat {α : Type} (xss : List (List α)) : List α :=
+  let op f (xs ys : List α) : List α := f (xs ++ ys)
+  List.foldl op id xss []
+
+example : concat [[1, 2], [3, 4]] = [1, 2, 3, 4] := by
+  rw [concat]
+  rewrite [List.foldl]
+  rewrite [List.foldl]
+  rewrite [List.foldl]
+  rfl
+
+/- # Exercicio 1.21 -/
+
 -- set_option trace.profiler true
 
 def steep₀ (xs : List Nat) : Bool :=

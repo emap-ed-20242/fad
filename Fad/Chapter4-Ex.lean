@@ -187,7 +187,7 @@ partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
 
 /- # Exercicio 4.13 -/
 
-namespace Tree2
+namespace DSet
 
 def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
   : List a → List a → List a
@@ -198,33 +198,35 @@ def merge [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
     else if x = y then x :: merge xs ys
     else y :: merge (x :: xs) ys
 
-#eval merge [1,9,10] [2,4,9]
-
-end Tree2
+end DSet
 
 
 /- # Exercicio 4.14 -/
 
-namespace Tree2
+namespace DSet
+open BST2 (Tree insert node)
 
-def union₁ (t₁ t₂ : Tree a) [LT a] [DecidableRel (α := a) (· < ·)]
-  : Tree a :=
+def union₁ [LT a] [DecidableRel (α := a) (· < ·)]
+  (t₁ t₂ : Set a) : Set a :=
   List.foldr insert t₁ (Tree.flatten t₂)
 
-def frm (l r : Nat) (xa : Array a) : Tree a :=
-    if h : l = r then Tree.null
-    else
-      let m := (l + r) / 2
-      node (frm l m xa) xa[m] (frm (m + 1) r xa)
+partial def frm [Inhabited a] (l r : Nat) (xa : Array a) : Set a :=
+  if l = r then .null
+  else
+   let m := (l + r) / 2
+   node (frm l m xa) xa[m]! (frm (m + 1) r xa)
 
-def build [Inhabited a] (xs : List a) : Tree a :=
+def build [Inhabited a] [LT a] [DecidableRel (α := a) (· < ·)]
+  (xs : List a) : Set a :=
   frm 0 xs.length xs.toArray
 
-def union₂ [LT a] [Inhabited a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
-  (t₁ t₂ : Tree a) : Tree a :=
-  build (merge t₁.flatten t₂.flatten)
+def union₂ [Inhabited a] [LT a] [DecidableEq a] [DecidableRel (α := a) (· < ·)]
+  (t₁ t₂ : Set a) : Set a :=
+  build $ merge (Tree.flatten t₁) (Tree.flatten t₂)
 
-end Tree2
+-- #eval union₂ (BST2.mkTree [1,2,3]) (BST2.mkTree [4,2,6]) |>.flatten
+
+end DSet
 
 
 /- 4.16 -/

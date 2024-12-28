@@ -1,13 +1,16 @@
 import Fad.Chapter3
 import Fad.Chapter1
+import Fad.«Chapter1-Ex»
 import Lean.Data.AssocList
 
 
 namespace Chapter3
+
+
+/- # Exercicio 3.1 -/
+
+section
 open SL1
-
--- 3.1
-
 /-
 (['a', 'b', 'c'], ['d'])
 (['a'], ['d', 'c', 'b'])
@@ -19,8 +22,11 @@ open SL1
 #eval List.foldl (flip snocSL) nilSL "abcd".toList
 #eval consSL 'a' (snocSL 'd' (List.foldr consSL nilSL "bc".toList))
 
+end
 
--- 3.2
+/- # Exercicio 3.2 -/
+
+namespace SL1
 
 def nullSL {α : Type} : SymList α → Bool
 | (xs, ys) => xs.isEmpty ∧ ys.isEmpty
@@ -31,16 +37,22 @@ def singleSL {α : Type} : SymList α → Prop
 def lengthSL {α : Type} : SymList α → Nat
 | (xs, ys) => xs.length + ys.length
 
+end SL1
 
--- 3.3
+/- # Exercicio 3.3 -/
+
+namespace SL1
 
 def headSL? {α : Type} : SymList α → Option α
  | ([],[])  => none    -- why not nilSL?
  | ([], ys) => List.head? ys
  | (xs, _)  => List.head? xs
 
+end SL1
 
--- 3.4
+/- # Exercicio 3.4 -/
+
+namespace SL1
 
 def initSL {α : Type} : SymList α → Option (SymList α)
  | (xs, [])  => if xs.isEmpty then none else some nilSL
@@ -49,27 +61,42 @@ def initSL {α : Type} : SymList α → Option (SymList α)
    some (us, vs.reverse)
  | (xs, _ :: ys)  => some (xs, ys)
 
+end SL1
 
--- 3.5
+/- # Exercicio 3.5 -/
 
-def dropWhileSL (p : α → Bool) (sl : SymList α) : SymList α :=
+namespace SL1
+open Chapter1 (dropWhile)
+
+def dropWhileSL₁ (p : α → Bool) (sl : SymList α) : SymList α :=
  let us := sl.1.dropWhile p
  if us.isEmpty then toSL (sl.2.reverse.dropWhile p) else (us, sl.2)
 
-def dropWhileSL' (p : α → Bool) (sl : SymList α) : SymList α :=
- match headSL? sl with
- | none => nilSL
- | some a =>
-   if p a then
-    match (tailSL sl) with
-    | none => nilSL
-    | some us => dropWhileSL p us
-   else sl
+partial def dropWhileSL (p : α → Bool) (sl : SymList α) : SymList α :=
+ if nullSL sl then
+   nilSL
+ else
+  match headSL? sl with
+  | none   => nilSL
+  | some x =>
+    if p x then
+      match (tailSL sl) with
+      | none    => nilSL
+      | some us => dropWhileSL p us
+    else
+      sl
 
-#eval [1,2,3,4].dropWhile (· < 3)
-#eval dropWhileSL (· < 3) (toSL [1,2,3,4]) |> fromSL
+example (p : α → Bool)
+  : dropWhile p ∘ fromSL = fromSL ∘ dropWhileSL₁ p := by
+  funext xs
+  simp [Function.comp]
+  simp [fromSL]
+  sorry -- it should not be proved
 
--- 3.6
+
+end SL1
+
+/- # Exercicio 3.6 -/
 
 partial def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
  if nullSL xs then
@@ -242,7 +269,7 @@ def accum : (e → v → e) → Array e → List (Nat × v) → Array e
  | f, a, (p :: ps) =>
    if h : p.1 < a.size then
     let i : Fin a.size := Fin.mk p.1 h
-    accum f (a.set i (f (a.get i) p.2)) ps
+    accum f (a.set i (f a[i] p.2)) ps
    else
     accum f a ps
 
