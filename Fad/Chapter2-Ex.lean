@@ -30,14 +30,11 @@ def inits (as : List a) : List (List a) :=
     (f []) :: help (f ∘ List.cons x) xs
   help id as
 
-#eval inits [1,2,3,4]
-
 
 -- 2.14
 
 def tails1 (xs : List α) : List (List α) :=
   List.takeWhile (¬ ·.isEmpty) (iterate xs.length List.tail xs)
 
-#eval tails1 [1,2,3]
 
 end Chapter2

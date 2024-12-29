@@ -4,15 +4,13 @@ import Fad.Chapter3
 namespace Chapter4
 
 /- 4.2
-Answer: We have smallest (a,b) = x such that f x < t ≤ f (x + 1)
-
+We have smallest (a,b) = x such that f x < t ≤ f (x + 1)
 But for t = 1024 and f x = x^2 below f x = t and f (x + 1) > t
--/
 
 #eval D1.smallest (fun x => dbg_trace "fun {x}"; x * x) 1024 (0, 1024)
 #eval (fun x => dbg_trace "fun {x}"; x * x) 32
 #eval (fun x => dbg_trace "fun {x}"; x * x) 33
-
+-/
 
 /- 4.3
 
@@ -57,25 +55,22 @@ Indexing the coordinates from zero, the positions are
 (0, 9), (5, 6), (7, 5), (9, 0)
 -/
 
-/-!
-# Exercicio 4.6
+-- # Exercicio 4.6
 
--/
-
-#eval D2.search₁ (λ (x, y) => x ^ 3 + y ^ 3) 1729
+-- #eval D2.search₁ (λ (x, y) => x ^ 3 + y ^ 3) 1729
 
 
-/- 4.7 -/
+-- # Exercicio 4.7
 
-def Tree1.Tree.flatcat : (t : Tree1.Tree a) → (xs: List a) → List a
+namespace BST1
+
+def flatcat : (t : Tree a) → (xs: List a) → List a
 | null, xs => xs
 | (node l x r), xs => l.flatcat (x :: r.flatcat xs)
 
-def Tree1.Tree.flatten₁ (t : Tree1.Tree a) : List a :=
+def flatten₁ (t : Tree a) : List a :=
  t.flatcat []
 
-#eval Tree1.mkTree [1,2,3,5] |>.flatten
-#eval Tree1.mkTree [1,2,3,5] |>.flatten₁
 
 example (t: Tree1.Tree a) :
   t.flatten = t.flatten₁ := by
@@ -89,13 +84,14 @@ example (t: Tree1.Tree a) :
     simp [Tree1.Tree.flatten₁]
     sorry
 
+end BST1
 
-/- 4.8
-  obs: pode ser necessario mathlib? -/
+-- # Exercicio 4.8
 
-open Chapter4.Tree1.Tree in
 
-example {α : Type} (t : Chapter4.Tree1.Tree α) :
+namespace BST1
+
+example {α : Type} (t : Tree α) :
   t.height ≤ t.size ∧ t.size < 2 ^ t.height := by
  apply And.intro
  {
@@ -113,7 +109,6 @@ example {α : Type} (t : Chapter4.Tree1.Tree α) :
     sorry
  }
 
-open Chapter4.Tree1 in
 
 example {α : Type} (t : Tree α) :
   t.height ≤ t.size ∧ t.size < 2 ^ t.height := by
@@ -139,22 +134,19 @@ example {α : Type} (t : Tree α) :
         n < 2 ^ (1 + max t₁.height t₂.height) : by linarith [ih_t₁_size, ih_t₂_size]
         _ = 2 ^ t.height : by rw max_comm
 
+end BST1
 
-/-
-# Exercise 4.9: Single-Traversal Partition
--/
+-- # Exercise 4.9
 
 def partition {α : Type} (p : α → Bool) : List α → List α × List α :=
   let op (x : α) (r : List α × List α) :=
    if p x then (x :: r.1, r.2) else (r.1, x :: r.2)
   List.foldr op ([], [])
 
-#eval partition (. > 0) [1, -2, 3, 0, -5, 6]
-#eval partition (. % 2 = 0) [1, 2, 3, 4, 5]
-#eval partition (. = 'a') ['a', 'b', 'a', 'c']
 
+-- # Exercicio 4.10
 
-/- 4.10 -/
+namespace BST2
 
 def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
  let op x acc :=
@@ -164,26 +156,15 @@ def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
      else (us, vs, x :: ws)
  xs.foldr op ([], [], [])
 
-#eval partition3 3 [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
 
-partial def Tree1.mkTree₁ : (xs : List Nat) → Tree1.Tree (List Nat)
-| [] => Tree1.Tree.null
+partial def mkTree₁ : (xs : List Nat) → Tree (List Nat)
+| [] => .null
 | (x :: xs) =>
    match partition3 x (x :: xs) with
-   | (us, vs, ws) => Tree1.Tree.node (mkTree₁ us) vs (mkTree₁ ws)
-
-#eval Tree1.mkTree₁ [1,2,2,3,5] |>.flatten
+   | (us, vs, ws) => node (mkTree₁ us) vs (mkTree₁ ws)
 
 
-/- # Exercicio 4.11 -/
-
--- See book, teórico.
-
-
-/- # Exercicio 4.12 -/
-
--- See book, teórico.
-
+end BST2
 
 /- # Exercicio 4.13 -/
 
@@ -229,9 +210,9 @@ def union₂ [Inhabited a] [LT a] [DecidableEq a] [DecidableRel (α := a) (· < 
 end DSet
 
 
-/- 4.16 -/
+-- # Exercicio 4.16
 
-namespace Tree2
+namespace BST2
 
 def balanceL (t₁ : Tree a) (x : a) (t₂ : Tree a) : Tree a :=
  match t₂ with
@@ -241,12 +222,12 @@ def balanceL (t₁ : Tree a) (x : a) (t₂ : Tree a) : Tree a :=
    then balance (balanceL t₁ x l) y r
    else balance (node t₁ x l) y r
 
-end Tree2
+end BST2
 
-/- # Exercicio 4.17 -/
+-- # Exercicio 4.17
 
 namespace DynamicSet
-open Tree2
+open BST2
 
 abbrev Set (α : Type) : Type := Tree α
 
@@ -256,8 +237,6 @@ def split [LT α] [LE α] [DecidableRel (α := α) (· < ·)] [DecidableRel (α 
   (x : α) : Set α → Set α × Set α :=
   pair mkTree ∘ List.partition (· ≤ x) ∘ Tree.flatten
 
-#eval split 2 <| mkTree [3,4,1,2,5,6]
-#eval split 4 $ mkTree (List.iota 10)
 
 end DynamicSet
 

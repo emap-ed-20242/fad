@@ -17,8 +17,6 @@ def g : Graph :=
  ([0, 1, 2, 3],
   [(0, 1, 1), (1, 2, 5), (1, 3, 10), (2, 3, 2), (3, 0, 4)])
 
-#eval toAdj g
-#eval toGraph (toAdj g)
 
 
 end Chapter9

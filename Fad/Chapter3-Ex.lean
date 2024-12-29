@@ -3,24 +3,23 @@ import Fad.Chapter1
 import Fad.«Chapter1-Ex»
 import Lean.Data.AssocList
 
-
 namespace Chapter3
-
 
 /- # Exercicio 3.1 -/
 
 section
 open SL1
+
 /-
 (['a', 'b', 'c'], ['d'])
 (['a'], ['d', 'c', 'b'])
 (['a', 'b'], ['d', 'c'])
--/
 
 #eval toSL "abcd".toList
 #eval List.foldr consSL nilSL "abcd".toList
 #eval List.foldl (flip snocSL) nilSL "abcd".toList
 #eval consSL 'a' (snocSL 'd' (List.foldr consSL nilSL "bc".toList))
+-/
 
 end
 
@@ -98,6 +97,8 @@ end SL1
 
 /- # Exercicio 3.6 -/
 
+namespace SL1
+
 partial def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
  if nullSL xs then
   snocSL xs nilSL
@@ -107,15 +108,15 @@ partial def initsSL {a : Type} (xs : SymList a) : SymList (SymList a) :=
   | some i => snocSL xs (initsSL i)
 
 
--- 3.7
+end SL1
+
+/- # Exercicio 3.7 -/
 
 def inits {α : Type} (xs : List α) : List (List α) :=
  ((List.map List.reverse) ∘ (Chapter1.scanl (flip List.cons) [])) xs
 
-#eval inits [1,2,3,4]
 
-
-/- 3.8 - discussão sobre complexidade no Livro. Código sugerido abaixo. -/
+/- # Exercicio 3.8  -/
 
 def measure (ts : List (Tree a)) : Nat :=
   ts.foldr (λ t acc => size t + acc) 0
@@ -137,15 +138,11 @@ def fromTs : List (Tree a) → List a
   fromTs (t1 :: t2 :: ts)
 termination_by x1 => measure x1
 
-open Tree in
-#eval fromTs [mk (mk (leaf 'a') (leaf 'b')) (mk (leaf 'c') (leaf 'd'))]
 
 -- 3.10
 
 def toRA {a : Type} : List a → RAList a :=
   List.foldr consRA nilRA
-
-#eval fromRA <| toRA [1,2,3,4,5]
 
 example : ∀ (xs : List a), xs = fromRA (toRA xs) := by
   intro xs
@@ -186,8 +183,6 @@ def updateRA : Nat → α → RAList α → RAList α
   else
     (Digit.one t) :: (updateRA (k- t.size) x xs)
 
-#eval fromRA <| updateRA 2 10 (toRA [1,2,3,4,5])
-
 
 -- 3.12
 
@@ -196,9 +191,8 @@ open Function (uncurry) in
 def updatesRA : RAList α → List (Nat × α) → RAList α
   | r, up => List.foldl (flip (uncurry updateRA)) r up
 
-infix: 60 " // " => updatesRA
-
-#eval fromRA <| (toRA ['a','b','c']) // [(2, 'x'), (0, 'y')]
+-- infix: 60 " // " => updatesRA
+-- #eval fromRA <| (toRA ['a','b','c']) // [(2, 'x'), (0, 'y')]
 
 
 -- 3.13
@@ -222,13 +216,13 @@ def unconsRA (xs : RAList a) : Option (a × RAList a) :=
  | some (Tree.node _ _ _, _) => none
  | none => none
 
+/-
 #eval unconsT <| toRA ([] : List Nat)
-
 #eval do
  let a ← unconsRA <| toRA [1,2,3]
  pure (a.1, fromRA a.2)
-
 #eval (unconsRA <| toRA [1,2,3]) >>= (fun x => pure (x.1, fromRA x.2))
+-/
 
 def headRA (xs : RAList a) : Option a :=
   Prod.fst <$> unconsRA xs
@@ -236,20 +230,12 @@ def headRA (xs : RAList a) : Option a :=
 def tailRA (xs : RAList a) : Option (RAList a) :=
   Prod.snd <$> unconsRA xs
 
-#eval fromRA <$> (tailRA <| toRA [1,2,3])
-#eval headRA <| toRA [1,2,3]
 
 -- 3.14
 
 def fa₀ (n : Nat) : Array Nat :=
   Chapter1.scanl (· * ·) 1 (List.range' 1 n) |>.toArray
 
-/-
-def fa₁ (n : Nat) : Array Nat :=
-  1 :: (List.range' 1 n).map (fun i => i * (fa₁ (i - 1)).get (i - 1))
--/
-
-#eval fa₀ 10
 
 
 -- # Exercicio 3.15
@@ -273,12 +259,12 @@ def accum : (e → v → e) → Array e → List (Nat × v) → Array e
    else
     accum f a ps
 
-#eval accum (λ a b => a + b) (List.range 5).toArray [(1,10), (1,10), (3,10)]
+-- #eval accum (λ a b => a + b) (List.range 5).toArray [(1,10), (1,10), (3,10)]
 
 def accumArray₁ (f : a → v → a) (e : a) (n : Nat) (is : List (Nat × v)) : Array a :=
  accum f (Array.mkArray n e) is
 
-#eval accumArray₁ (λ a b => a + b) 0 5 [(1,10), (1,10), (3,10)]
+-- #eval accumArray₁ (λ a b => a + b) 0 5 [(1,10), (1,10), (3,10)]
 
 
 end Chapter3

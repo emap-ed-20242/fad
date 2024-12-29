@@ -25,10 +25,6 @@ instance : Ord Float where
     else if x == y then Ordering.eq
     else Ordering.gt
 
-#eval minWith₁ (λ x => x * x) [3, 1, 4, 2]
-#eval minWith₂ (λ x => x * x) [3, 1, 4, 2]
-#eval minWith (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
-#eval minWith₂ (λ x : Float => x * x) [3.1, -1.2, 4.4, -1.1, 5.6]
 
 /- # Exercicio 7.2 -/
 
@@ -54,17 +50,6 @@ def minsWith' {α β : Type} [Ord β] (f : α → β) (xs : List α) : List α :
       | Ordering.gt => y :: ys
   xs.map tuple |>.foldr step [] |>.map (·.snd)
     where tuple x := (f x, x)
-
-
-#eval minsWith (fun (p : (Int × Int)) => p.1^2 + p.2^2)
-  [(1, 2), (3, 4), (1, 1), (-1, -1), (1, -1)]
-
-#eval minsWith' (fun x => dbg_trace "f {x}"; x % 3) (List.range 10)
-
-#eval minsWith id [1, 2, 1, 4, 5]
-
-#eval minsWith' (fun s => dbg_trace "f {s}"; s.length)
-  ["apple", "banana", "kiwi", "pear"]
 
 
 /- # Exercicio 7.4 -/
@@ -93,12 +78,6 @@ def perms₁ {α : Type} : List α → List (List α)
 /- # Exercicio 7.5 -/
 
 open Chapter6 (minimum)
-
-#eval minimum [1,2,3]
-#eval [2] < [2,2]
-#eval minimum [[2,3],[1,2],[1]]
-#eval minimum ([] : List (List Nat)) -- []
-#eval minimum ([] : List Nat) -- 0
 
 example (x : Nat)
   : minimum ([].map (x :: ·)) ≠ x :: (minimum []) := by

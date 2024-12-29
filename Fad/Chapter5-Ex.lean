@@ -74,7 +74,6 @@ partial def qsort₄ [LE α] [DecidableRel (α := α) (· ≤ ·)] : List α →
 
 end
 
-#eval qsort₄ [2,0,1,3,4]
 
 mutual
 def help₅ [LE α] [DecidableEq α] [DecidableRel (@LE.le α _)]
@@ -101,9 +100,6 @@ def qsort₅ [LE α] [DecidableEq α] [DecidableRel (α := α) (· ≤ ·)]
 termination_by (n, ys)
 end
 
-#eval qsort₃ [3,0,2,1]
-#eval qsort₄ [3,0,2,1]
-#eval qsort₅ 5 [3,0,2,1]
 
 end Quicksort
 
@@ -205,7 +201,9 @@ instance : Ord Card where
     S52.msort₃ para sortBy parametrizando pela função de comparação.
 
     Como em Haskell, `compare` é definida para todo tipo instância de `Ord`.
-    A função `compareOn` é equivalente a `comparing` do livro.  -/
+    A função `compareOn` é equivalente a `comparing` do livro.
+
+-/
 
 def merge₁ (f : a → a → Ordering) : List a → List a → List a
  | [], ys => ys
@@ -224,8 +222,6 @@ def sortBy (f : a → a → Ordering) : List a → List a
  | x::xs =>
    unwrap (until' single (pairWith (merge₁ f)) (List.map wrap (x::xs))) |>.getD []
 
-#eval sortBy (λ a b => Ordering.swap (compare a b)) [2,1,3]
-#eval compareOn id 1 2
 
 def sortOn₁ [Ord b] (f : a → b) : List a → List a :=
   sortBy (compareOn f)
@@ -236,7 +232,7 @@ def sortOn₂ [Ord b] (f : a → b) (xs : List a) : List a :=
 def sortOn₃ [Ord b] (f : a → b) : List a → List a :=
   List.map Prod.snd ∘ sortBy (compareOn Prod.fst) ∘ List.map (λ x => (f x, x))
 
-
+/-
 #eval sortOn₁ String.length ["aaa", "a", "aa", "aaaaaa", "aaaa"]
 
 #eval sortOn₂ (fun s => dbg_trace "fun {s}"
@@ -245,7 +241,7 @@ def sortOn₃ [Ord b] (f : a → b) : List a → List a :=
     | _ => Card.mk ' ' ' ')
   ["H2","CA","CT","C7","C2", "SA","SQ","S9","S8",
    "S2","HK","H5","H3"]
-
+-/
 
 /- # Exercicio 5.13 -/
 
@@ -278,8 +274,6 @@ def split₁ [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
   then (x, acc.1 :: acc.2.2, acc.2.1)
   else (acc.1, x :: acc.2.2, acc.2.1)
 
-
-#eval split₁ [3,1,2,4,5]
 
 theorem split_left_le [Inhabited a] [LE a] [DecidableRel (α := a) (· ≤ ·)]
  (xs : List a) : (split₁ xs).2.1.length ≤ xs.length := by sorry
@@ -329,7 +323,6 @@ def mkPair : Nat → (List a) → (Tree a × List a)
 
 def mkTree (xs : List a) : Tree a := (mkPair₀ xs.length xs).1
 
-#eval mkTree [5,1,3,2,4,5]
 
 end Heapsort
 
@@ -342,9 +335,6 @@ open Function (uncurry) in
 def csort (m : Nat) (xs : List Nat) : List Nat :=
   let a := Chapter3.accumArray Nat.add 0 m (xs.map (·, 1))
   a.zipWithIndex.toList.flatMap (uncurry replicate)
-
-#eval let xs := [17,0,4,2,1,3,60,5,1,7,15]
- csort (1 + xs.maximum.getD 0) xs
 
 
 /- # Exercicio 5.19 -/
@@ -364,7 +354,7 @@ def string_ptn : (String → Char) → List String → List (List String)
     let ms := "Aabcdefghijklmnopqrstuvwxyz".toList
     remove_empty (ms.map (fun m => filter (fun y => decide (f y = m)) (x::xs)))
 
-#eval string_ptn (flip String.get ⟨0⟩) ["abc", "def", "ghi", "acb", "dfe", "gih"]
+-- #eval string_ptn (flip String.get ⟨0⟩) ["abc", "def", "ghi", "acb"]
 
 def lists_concat : List (List α) → List α
   | [] => []
@@ -379,8 +369,7 @@ def string_incresing_order : Nat → List (String → Char)
   | sz => ((List.range sz).map (fun x => flip String.get ⟨x⟩))
 
 
-#eval string_rsort (string_incresing_order 3) ["abc", "def", "ghi"]
-#eval string_rsort (string_incresing_order 4) ["ac", "deyz", "deyx"]
+-- #eval string_rsort (string_incresing_order 3) ["abc", "ghi"]
 
 
 end Chapter5
