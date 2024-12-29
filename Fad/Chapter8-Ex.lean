@@ -3,7 +3,7 @@ import Fad.Chapter8
 namespace Chapter8
 
 def splits : List α → List (List α × List α)
-| []       => [([], [])]
+| []       => []
 | x :: xs  =>
   ([], x :: xs) :: (splits xs).map (fun (ys, zs) => (x :: ys, zs))
 
