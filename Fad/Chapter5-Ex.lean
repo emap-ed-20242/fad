@@ -1,7 +1,6 @@
 import Fad.Chapter1
 import Fad.Chapter3
 import Fad.Chapter5
-import Mathlib.tactic
 
 namespace Chapter5
 

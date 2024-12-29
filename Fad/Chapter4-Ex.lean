@@ -65,23 +65,23 @@ Indexing the coordinates from zero, the positions are
 namespace BST1
 
 def flatcat : (t : Tree a) → (xs: List a) → List a
-| null, xs => xs
-| (node l x r), xs => l.flatcat (x :: r.flatcat xs)
+| .null, xs => xs
+| .node l x r, xs => flatcat l (x :: flatcat r xs)
 
-def flatten₁ (t : Tree a) : List a :=
- t.flatcat []
+def Tree.flatten₁ (t : Tree a) : List a :=
+ flatcat t []
 
 
-example (t: Tree1.Tree a) :
+example (t: Tree a) :
   t.flatten = t.flatten₁ := by
   induction t with
   | null => exact rfl
   | node l x r ihl ihr =>
-    simp [Tree1.Tree.flatten₁]
-    simp [Tree1.Tree.flatten]
-    simp [Tree1.Tree.flatcat]
+    simp [Tree.flatten₁]
+    simp [Tree.flatten]
+    simp [flatcat]
     simp [ihl, ihr]
-    simp [Tree1.Tree.flatten₁]
+    simp [Tree.flatten₁]
     sorry
 
 end BST1
@@ -93,27 +93,31 @@ namespace BST1
 
 example {α : Type} (t : Tree α) :
   t.height ≤ t.size ∧ t.size < 2 ^ t.height := by
- apply And.intro
- {
- induction t with
- | null => simp [height, size]
- | node t₁ x t₂ ihl ihr =>
-   simp [height, size]
-   sorry
- }
- {
+  apply And.intro
+  {
+   induction t with
+   | null  => simp [Tree.height, Tree.size]
+   | node t₁ x t₂ ihl ihr =>
+     simp [Tree.height, Tree.size]
+     sorry
+  }
+  {
   induction t with
-  | null => simp [height,size]
+  | null => simp [Tree.height, Tree.size]
   | node t₁ x t₂ ihl ihr =>
-    simp [height, size]
+    simp [Tree.height, Tree.size]
     sorry
- }
+  }
 
+end BST1
+
+/-
+namespace Chapter3
 
 example {α : Type} (t : Tree α) :
   t.height ≤ t.size ∧ t.size < 2 ^ t.height := by
- induction t with n t₁ t₂ ih_t₁ ih_t₂
-  case leaf n =>
+ induction t with
+  | leaf n =>
     split
     case left =>
       dsimp [Chapter3.Tree.height, Chapter3.Tree.size]
@@ -121,7 +125,7 @@ example {α : Type} (t : Tree α) :
     case right =>
       dsimp [Tree.height, Tree.size]
       exact nat.lt_succ_self 1
-  case node n t₁ t₂ =>
+  | node n t₁ t₂ =>
     cases ih_t₁ with | intro ih_t₁_height ih_t₁_size
     cases ih_t₂ with | intro ih_t₂_height ih_t₂_size
     split
@@ -134,7 +138,8 @@ example {α : Type} (t : Tree α) :
         n < 2 ^ (1 + max t₁.height t₂.height) : by linarith [ih_t₁_size, ih_t₂_size]
         _ = 2 ^ t.height : by rw max_comm
 
-end BST1
+end Chapter3
+-/
 
 -- # Exercise 4.9
 
