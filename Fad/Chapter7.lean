@@ -107,4 +107,50 @@ def pick [LE a] [h : DecidableRel (α := a) (· ≤ ·)] [Inhabited a]
     aux p ps
 
 
+-- 7.3 Coin-changing
+
+namespace S73
+
+abbrev Denom := Nat
+abbrev Tuple := List Nat
+
+def usds : List Denom := [100,50,25,10,5,1]
+def ukds : List Denom := [200,100,50,20,10,5,2,1]
+
+def amount (ds : List Denom) (cs : Tuple) : Nat :=
+ List.sum (ds.zipWith (· * ·) cs)
+
+-- #eval amount usds [2,1,0,0,1,1]
+
+def mktuples : List Denom → Nat → List Tuple
+  | [1]  , n   => [[n]]
+  | []   , _   => panic! "mktuples: invalid empty list"
+  | d :: ds, n =>
+    (List.range' 0 (n / d + 1)).flatMap (λ c =>
+      mktuples ds (n - c * d) |>.map (λ cs => c :: cs))
+
+def mkchange₀ (ds : List Denom) : Nat → Tuple :=
+  minWith List.sum ∘ mktuples ds
+
+/-
+#eval mktuples usds 27
+#eval mktuples [7,3,1] 54
+#eval mkchange₀ ukds 27
+ -/
+
+def mkchange : List Denom → Nat → Tuple
+  | [1]    , n => [n]
+  | []     , _ => panic! "mkchange: invalid empty list"
+  | d :: ds, n =>
+    let c := n / d
+    c :: mkchange ds (n - c * d)
+
+/-
+#eval mkchange ukds 256
+#eval mkchange usds 256
+#eval mkchange [7,3,1] 54
+-/
+
+end S73
+
 end Chapter7
