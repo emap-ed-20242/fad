@@ -97,3 +97,44 @@ def pick₁ : List Nat → Option (Nat × List Nat)
   | none => none
   | some (y, ys) =>
     if x ≤ y then some (x, xs) else some (y, x :: ys)
+
+
+-- # Exercicio 7.12
+
+namespace S73
+
+/- response: both have the same 'cost' (here 'sum') and
+   'minWith' takes the first smallest from the list.
+   If `mktuples` produces decreasing order, it would
+   return the other `minimum`. -/
+
+def mktuples' : List Denom → Nat → List Tuple
+  | [1]  , n   => [[n]]
+  | []   , _   => panic! "mktuples: invalid empty list"
+  | d :: ds, n =>
+    let rs := List.iota (n / d + 1) |>.map (· - 1)
+    rs.flatMap (λ c => mktuples ds (n - c * d) |>.map (λ cs => c :: cs))
+
+def mkchange' (ds : List Denom) : Nat → Tuple :=
+  minWith List.sum ∘ mktuples' ds
+
+/-
+#eval mkchange₀ [7,3,1] 54
+#eval mkchange' [7,3,1] 54
+-/
+
+end S73
+
+-- # Exercicio 7.16
+
+namespace S73
+
+def urds := [100, 50, 20, 15, 5, 2, 1]
+#eval mkchange urds 30
+
+/- not clear how to prove formally -/
+
+
+end S73
+
+end Chapter7
