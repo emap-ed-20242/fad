@@ -2,6 +2,7 @@ import Fad.Chapter1
 import Fad.«Chapter1-Ex»
 import Fad.Chapter3
 import Fad.Chapter5
+import Fad.Chapter6
 import Fad.Chapter7
 
 namespace Chapter8
@@ -10,8 +11,9 @@ namespace S1
 
 /- 8.1 Minimum-height trees -/
 
-open Chapter5.S52 (halve₁ length_halve_fst length_halve_snd pairWith)
+open Chapter5.S52 (halve length_halve_fst length_halve_snd pairWith)
 open Chapter1 (wrap unwrap single until' concatMap)
+open Chapter6 (foldl1)
 open Chapter7 (minWith)
 
 inductive Tree (α : Type) : Type where
@@ -41,10 +43,10 @@ def mkTree {a : Type} [Inhabited a] : (as : List a) → Tree a
    if h : xs.length = 0 then
     .leaf x
    else
-    let p := halve₁ (x :: xs)
-    have : (halve₁ (x :: xs)).1.length < xs.length + 1 :=
+    let p := halve (x :: xs)
+    have : (halve (x :: xs)).1.length < xs.length + 1 :=
      by simp [length_halve_fst]; omega
-    have : (halve₁ (x :: xs)).2.length < xs.length + 1 :=
+    have : (halve (x :: xs)).2.length < xs.length + 1 :=
      by simp [length_halve_snd]; omega
     .node (mkTree p.1) (mkTree p.2)
  termination_by xs => xs.length
@@ -85,12 +87,8 @@ def mkTrees₁ {a : Type} [Inhabited a] : List a → List (Tree a) :=
 abbrev Forest (a : Type) := List (Tree a)
 
 
-def foldl1 [Inhabited a] (f : a → a → a) : List a → a
-  | []    => default
-  | x::xs => xs.foldl f x
-
 def rollup [Inhabited (Tree a)] : List (Tree a) → Tree a :=
-  foldl1 .node
+  Chapter6.foldl1 .node
 
 def spine {a : Type} : Tree a → List (Tree a)
  | .leaf x   => [.leaf x]

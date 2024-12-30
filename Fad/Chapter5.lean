@@ -116,7 +116,7 @@ def halve₀ (xs : List a) : (List a × List a) :=
  let m := xs.length / 2
  (xs.take m,xs.drop m)
 
-def halve₁ : (xs : List a) → (List a × List a) :=
+def halve : (xs : List a) → (List a × List a) :=
  let op x p := (p.2, x :: p.1)
  List.foldr op ([],[])
 
@@ -136,26 +136,26 @@ def twoStepInduction {P : List a → Prop}
   | a :: b :: cs => more _ _ _ (twoStepInduction empty single more _)
 
 
-theorem length_halve_fst : (halve₁ xs).fst.length = xs.length / 2 := by
+theorem length_halve_fst : (halve xs).fst.length = xs.length / 2 := by
  induction xs using twoStepInduction with
- | empty          => simp [halve₁]
+ | empty          => simp [halve]
  | single a h     =>
    have _ :: [] := a
-   simp [halve₁]
+   simp [halve]
  | more a b cs ih =>
-   rw [halve₁, List.foldr, List.foldr, <-halve₁]
+   rw [halve, List.foldr, List.foldr, ←halve]
    simp
    omega
 
 
-theorem length_halve_snd : (halve₁ xs).snd.length = (xs.length + 1) / 2 := by
+theorem length_halve_snd : (halve xs).snd.length = (xs.length + 1) / 2 := by
  induction xs using twoStepInduction with
- | empty          => simp [halve₁]
+ | empty          => simp [halve]
  | single a h     =>
    have _ :: [] := a
-   simp [halve₁]
+   simp [halve]
  | more a b cs ih =>
-   rw [halve₁, List.foldr, List.foldr, <-halve₁]
+   rw [halve, List.foldr, List.foldr, ←halve]
    simp
    omega
 
@@ -165,10 +165,10 @@ def mkTree : (as : List a) → Tree a
  | x :: xs =>
    if h : xs.length = 0 then Tree.leaf x
    else
-    let p := halve₁ (x :: xs)
-    have : (halve₁ (x :: xs)).fst.length < xs.length + 1 :=
+    let p := halve (x :: xs)
+    have : (halve (x :: xs)).fst.length < xs.length + 1 :=
      by simp [length_halve_fst]; omega
-    have : (halve₁ (x :: xs)).snd.length < xs.length + 1 :=
+    have : (halve (x :: xs)).snd.length < xs.length + 1 :=
      by simp [length_halve_snd]; omega
     Tree.node (mkTree p.1) (mkTree p.2)
  termination_by xs => xs.length
@@ -196,9 +196,11 @@ def msort₁ [LE a] [DecidableRel (α := a) (· ≤ ·)] : List a → List a
  | x :: xs =>
    if h: xs.length = 0 then [x]
    else
-    let p := halve₁ (x :: xs)
-    have : (halve₁ (x :: xs)).fst.length < xs.length + 1 := by simp [length_halve_fst]; omega
-    have : (halve₁ (x :: xs)).snd.length < xs.length + 1 := by simp [length_halve_snd]; omega
+    let p := halve (x :: xs)
+    have : (halve (x :: xs)).fst.length < xs.length + 1 := by
+      simp [length_halve_fst]; omega
+    have : (halve (x :: xs)).snd.length < xs.length + 1 := by
+      simp [length_halve_snd]; omega
     merge (msort₁ p.1) (msort₁ p.2)
  termination_by xs => xs.length
 

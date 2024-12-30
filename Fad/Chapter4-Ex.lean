@@ -153,14 +153,15 @@ def partition {α : Type} (p : α → Bool) : List α → List α × List α :=
 
 namespace BST2
 
-def partition3 (y : Nat) (xs : List Nat) : (List Nat × List Nat × List Nat) :=
+def partition3 [LT a]
+ [DecidableRel (α := a) (· < ·)] [DecidableRel (α := a) (· = ·)]
+ (y : a) (xs : List a) : (List a × List a × List a) :=
  let op x acc :=
    let (us, vs, ws) := acc
      if      x < y then (x :: us, vs, ws)
      else if x = y then (us, x :: vs, ws)
      else (us, vs, x :: ws)
  xs.foldr op ([], [], [])
-
 
 partial def mkTree₁ : (xs : List Nat) → Tree (List Nat)
 | [] => .null
