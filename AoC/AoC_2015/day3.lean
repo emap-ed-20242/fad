@@ -39,7 +39,7 @@ def count_unique_houses (directions : String) : Nat :=
   moves.2.length  -- return the length of the list of visited houses
 
 
-#eval count_unique_houses input
+-- #eval count_unique_houses input
 
 -- Part2
 -- Compute the number of unique houses visited by Santa and Robo-Santa
@@ -62,6 +62,6 @@ def count_unique_houses_with_robot (directions : String) : Nat :=
   moves.2.1.length  -- return the length of the list of visited houses
 
 
-#eval count_unique_houses_with_robot input
+-- #eval count_unique_houses_with_robot input
 
 end AoC2015D3

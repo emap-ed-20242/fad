@@ -21,7 +21,7 @@ def fullyReact (p : String) : String :=
         if reacts a c then loop as cs else loop (c :: ts) cs
   (loop [] p.toList).asString
 
-#eval fullyReact input |>.length
+-- #eval fullyReact input |>.length
 
 -- Part 2
 
@@ -33,6 +33,6 @@ def shortestP (p : String) : Nat :=
   let lengths := units.map (λ u => fullyReact (removeUnit p u) |>.length)
   lengths.foldl Nat.min p.length
 
-#eval shortestP input
+-- #eval shortestP input
 
 end AoC2018D5

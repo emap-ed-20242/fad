@@ -22,18 +22,19 @@ termination_by (ls.length, x)
 def solve₁ (ls : List String) : Nat :=
   dfs ls 3 1 0
 
-#eval solve₁ input
+--#eval solve₁ input
 
 -- Part 2
 
 def solve₂ (ls : List String) (dx dy : Nat) : Nat :=
   dfs ls dx dy 0
 
+/-
 #eval [(1,1),(3,1),(5,1),(7,1),(1,2)].map
   (λ ⟨dx,dy⟩ => solve₂ input dx dy)
 
 #eval [(1,1),(3,1),(5,1),(7,1),(1,2)].foldl
   (λ acc ⟨dx,dy⟩ => acc * solve₂ input dx dy) 1
-
+-/
 
 end AoC2020D3

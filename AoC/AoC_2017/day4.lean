@@ -26,7 +26,7 @@ def isValid1 (ph : String) : Bool :=
 def countValid1 (phrs : List String) : Nat :=
   phrs.foldl (fun acc ph => if isValid1 ph then acc + 1 else acc) 0
 
-#eval countValid1 input
+-- #eval countValid1 input
 
 -- Parte 2
 def sortChars (lst : List Char) : List Char :=
@@ -52,6 +52,6 @@ def isValid2 (ph : String) : Bool :=
 def countValid2 (phrs : List String) : Nat :=
   phrs.foldl (fun acc ph => if isValid2 ph then acc + 1 else acc) 0
 
-#eval countValid2 input
+-- #eval countValid2 input
 
 end AoC2017D4

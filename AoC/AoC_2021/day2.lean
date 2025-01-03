@@ -41,8 +41,8 @@ def exec₁ (pos : Nat × Nat) (c : Command) : Nat × Nat :=
   | ⟨_,_⟩          => pos
 
 
-#eval (λ a => a.1 * a.2) $ execute₁ (0,0) input
-#eval (λ a => a.1 * a.2) $ input.foldl exec₁ (0,0)
+-- #eval (λ a => a.1 * a.2) $ execute₁ (0,0) input
+-- #eval (λ a => a.1 * a.2) $ input.foldl exec₁ (0,0)
 
 -- Part 2
 
@@ -64,5 +64,5 @@ def exec₂ (pos : Nat × Nat × Nat) (c : Command) : Nat × Nat × Nat :=
   | ⟨_,_⟩          => pos
 
 
-#eval (λ a => a.1 * a.2) $ execute₂ (0,0) 0 input
-#eval (λ a => a.1 * a.2.1) $ input.foldl exec₂ (0, 0,0)
+-- #eval (λ a => a.1 * a.2) $ execute₂ (0,0) 0 input
+-- #eval (λ a => a.1 * a.2.1) $ input.foldl exec₂ (0, 0,0)

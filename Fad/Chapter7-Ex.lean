@@ -118,25 +118,26 @@ def mktuples' : List Denom → Nat → List Tuple
 def mkchange' (ds : List Denom) : Nat → Tuple :=
   minWith List.sum ∘ mktuples' ds
 
-#eval mkchange₀ [7,3,1] 54
-#eval mkchange' [7,3,1] 54
+-- #eval mkchange₀ [7,3,1] 54
+-- #eval mkchange' [7,3,1] 54
 
 end S73
 
--- # Exercicio 7.16
+/- # Exercicio 7.16 
+   not clear how to prove formally 
+-/
 
 namespace S73
 
 def urds := [100, 50, 20, 15, 5, 2, 1]
 
+/-
 #eval mkchange₀ urds 30
 #eval mkchange₁ urds 30
 #eval mkchange  urds 30
 #eval mkchange₀ [4,3,1] 6
 #eval mkchange₁ [4,3,1] 6
-
-/- not clear how to prove formally -/
-
+-/
 
 end S73
 

@@ -26,7 +26,7 @@ def countIncreases : List Nat → Nat
 | [_] => 0
 | (x :: y :: xs) => (if y > x then 1 else 0) + countIncreases (y :: xs)
 
-#eval countIncreases input
+-- #eval countIncreases input
 
 
 /- # Part 2
@@ -54,6 +54,6 @@ def sublists (n: Nat) : List α → List (List α) → List (List α)
      sublists n xs (slice :: acc)
 
 -- #eval sublists 3 input []
-#eval countIncreases $ sublists 3 input [] |>.map List.sum
+-- #eval countIncreases $ sublists 3 input [] |>.map List.sum
 
 end AoC2021D1

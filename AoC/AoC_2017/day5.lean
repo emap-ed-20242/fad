@@ -21,11 +21,11 @@ partial def proc₁ (arr : Array Int) (i : Int)
     let new := arr.set! i.toNat <| f off
     proc₁ new (i + off) (steps + 1) f
 
-#eval proc₁ input 0 0 (λ x => x + 1)
+-- #eval proc₁ input 0 0 (λ x => x + 1)
 
 
 -- Parte 2
 
-#eval proc₁ input 0 0 (λ x => if x ≥ 3 then x - 1 else x + 1)
+-- #eval proc₁ input 0 0 (λ x => if x ≥ 3 then x - 1 else x + 1)
 
 end AoC2017D5

@@ -27,7 +27,7 @@ def is_nice (s : String) : Bool :=
   let cs := s.toList
   rule₁ cs ∧ rule₂ cs ∧ rule₃ cs
 
-#eval input.foldl (λ acc s => if is_nice s then acc + 1 else acc) 0
+-- #eval input.foldl (λ acc s => if is_nice s then acc + 1 else acc) 0
 
 -- Part 2
 
@@ -61,6 +61,6 @@ def is_nice₂ (s : String) : Bool :=
 def count_nice_strings₂ (ss : List String) : Nat :=
   ss.foldl (λ acc s => if is_nice₂ s then acc + 1 else acc) 0
 
-#eval count_nice_strings₂ input
+-- #eval count_nice_strings₂ input
 
 end AoC2015D5

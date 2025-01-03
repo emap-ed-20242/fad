@@ -20,7 +20,7 @@ def solve1 (str : String) : Nat :=
   let xs := str.toList.map chToDig
   aux (xs.getLast!) xs 0
 
-#eval solve1 $ input.replace "\n" ""
+-- #eval solve1 $ input.replace "\n" ""
 
 -- Parte 2
 
@@ -31,7 +31,7 @@ def solve2 (str : String) : Nat :=
   |>.foldl (fun acc (x, y) => if x == y then acc + x else acc) 0
   |> (. * 2)
 
-#eval solve2 $ input.replace "\n" ""
+-- #eval solve2 $ input.replace "\n" ""
 
 
 end AoC2017D1

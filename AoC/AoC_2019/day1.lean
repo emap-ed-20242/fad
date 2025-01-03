@@ -13,7 +13,7 @@ def input : List Nat :=
 def solution₁ : Nat :=
   input.foldr (λ n acc => ((n / 3) - 2) + acc) 0
 
-#eval input.map (λ n  => n / 3 - 2) |>.sum
+-- #eval input.map (λ n  => n / 3 - 2) |>.sum
 
 
 -- Part 2
@@ -31,8 +31,10 @@ def fuel₂ : Nat → Nat → Nat
   let mass := (n + 1) / 3 - 2
   fuel₂ mass (total + mass)
 
+/-
 #eval input.foldr (λ n acc => fuel₁ n + acc) 0
 #eval input.foldr (λ n acc => fuel₂ n acc) 0
 #eval input.foldr (λ n acc => fuel₂ n 0 + acc) 0
+-/
 
 end AoC2019D1

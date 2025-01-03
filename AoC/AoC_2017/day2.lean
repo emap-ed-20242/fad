@@ -26,7 +26,7 @@ def rowDiff (rw : List Nat) : Nat :=
 def checksum (sheet : List (List Nat)) : Nat :=
   sheet.foldl (fun acc rw => acc + rowDiff rw) 0
 
-#eval checksum sheet
+-- #eval checksum sheet
 
 -- Parte 2
 def genPairs (rw : List Nat) : List (Nat × Nat) :=
@@ -44,6 +44,6 @@ def divPair (rw : List Nat) : Nat :=
 def checksum2 (sheet : List (List Nat)) : Nat :=
   sheet.foldl (fun acc rw => acc + divPair rw) 0
 
-#eval checksum2 sheet
+-- #eval checksum2 sheet
 
 end AoC2017D2

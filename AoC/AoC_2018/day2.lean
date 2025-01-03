@@ -26,7 +26,7 @@ def checksum (ss : List String) : Nat :=
   let threes := count_exactly 3 ss
   twos * threes
 
-#eval checksum input
+-- #eval checksum input
 
 
 -- PART 2
@@ -49,6 +49,6 @@ def boxes := (find_differ_by_one input).getD default
 def common_letters (s1 s2 : String) : String :=
   s1.toList.zip s2.toList |>.filter (fun (c₁, c₂) => c₁ = c₂) |>.map  (·.1) |>.asString
 
-#eval common_letters boxes.1 boxes.2
+-- #eval common_letters boxes.1 boxes.2
 
 end AoC2018D2

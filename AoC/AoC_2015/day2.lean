@@ -25,7 +25,7 @@ def total_paper (input : List String) : Int :=
     | none => acc) 0
 
 
-#eval total_paper input
+-- #eval total_paper input
 
 
 -- Part 2:
@@ -43,6 +43,6 @@ def total_ribbon (input : List String) : Int :=
     | some (l, w, h) => acc + ribbon_for_box l w h
     | none => acc) 0
 
-#eval total_ribbon input
+-- #eval total_ribbon input
 
 end AoC2015D2

@@ -38,7 +38,7 @@ def solve₁ (ps: List Password) : Nat :=
     if p.low ≤ n ∧ n ≤ p.high then 1 + solve₁ ps'
     else solve₁ ps'
 
-#eval solve₁ $ input.map parse
+-- #eval solve₁ $ input.map parse
 
 -- Part 2
 
@@ -55,6 +55,6 @@ def solve₂ (ps: List Password) : Nat :=
     else
       solve₂ ps'
 
-#eval solve₂ $ input.map parse
+-- #eval solve₂ $ input.map parse
 
 end AoC2020D2

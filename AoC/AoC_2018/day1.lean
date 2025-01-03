@@ -11,7 +11,7 @@ def content : String := include_str "../../data/AoC2018_day1.txt"
 def input : List Int := content.splitOn "\n" |>.filterMap
    (λ  s => (if s.startsWith "+" then s.drop 1 else s).toInt?)
 
-#eval input.foldl (fun acc x => acc + x) 0
+-- #eval input.foldl (fun acc x => acc + x) 0
 
 -- PART 2
 
@@ -27,6 +27,6 @@ partial def first_duplicate_freq (lst : List Int) : Int :=
         aux (seen.insert new) new ts
   aux (Std.HashSet.empty.insert 0) 0 lst
 
-#eval first_duplicate_freq input
+-- #eval first_duplicate_freq input
 
 end AoC2018D1

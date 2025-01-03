@@ -65,7 +65,7 @@ def mark_claims : List Claim → Map → Map
 def count_overlaps (m : Map) : Nat :=
   m.fold (fun acc _ v => if v > 1 then acc + 1 else acc) 0
 
-#eval count_overlaps $ mark_claims claims fabric
+-- #eval count_overlaps $ mark_claims claims fabric
 
 
 -- Part 2
@@ -82,6 +82,6 @@ def find_intact_claim (cs : List Claim) (m : Map) : Option Nat :=
   | some claim => some claim.id
   | none => none
 
-#eval (find_intact_claim claims <| mark_claims claims fabric).getD 0
+-- #eval (find_intact_claim claims <| mark_claims claims fabric).getD 0
 
 end AoC2018D3
